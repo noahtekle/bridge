@@ -67,8 +67,18 @@ function isMissing(err: unknown): boolean {
   return typeof err === 'object' && err !== null && 'code' in err && (err as { code: unknown }).code === 'ENOENT';
 }
 
+/**
+ * Per-process monotonic suffix so two backups in the same millisecond can't
+ * land in the same folder. Plain ISO with millisecond precision still
+ * collides in tight loops (e.g. the test suite, or a burst of toggles).
+ */
+let backupCounter = 0;
+
 function isoForFilename(date: Date): string {
-  return date.toISOString().replace(/:/g, '-').replace(/\..+$/, 'Z');
+  backupCounter += 1;
+  // 2026-04-26T20-30-45-123Z-7 — ISO with ms, monotonic suffix
+  const iso = date.toISOString().replace(/:/g, '-').replace(/\./g, '-');
+  return `${iso}-${backupCounter}`;
 }
 
 /**

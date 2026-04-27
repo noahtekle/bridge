@@ -1,15 +1,33 @@
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 /**
  * Canonical paths for the user's Claude Code config tree.
- * Resolved once at import time so all scan functions share the same root.
+ *
+ * Tests can override the home root via `BRIDGE_CLAUDE_HOME`. When set, the
+ * paths below resolve under that directory instead of `~/.claude/`. This is
+ * the only way real production code reads from a non-default location, and
+ * we expose it for tests only — there's no UI surface for it.
  */
-export const CLAUDE_HOME = join(homedir(), '.claude');
+function resolveClaudeHome(): string {
+  const override = process.env.BRIDGE_CLAUDE_HOME;
+  if (override && override.length > 0) return override;
+  return join(homedir(), '.claude');
+}
+
+export const CLAUDE_HOME = resolveClaudeHome();
+
+/**
+ * The override case relocates `.claude.json` next to the test root so a single
+ * tmp dir contains everything. In production it lives at `~/.claude.json`.
+ */
+const claudeJsonPath = process.env.BRIDGE_CLAUDE_HOME
+  ? join(dirname(CLAUDE_HOME), '.claude.json')
+  : join(homedir(), '.claude.json');
 
 export const CLAUDE_PATHS = {
   home: CLAUDE_HOME,
-  claudeJson: join(homedir(), '.claude.json'),
+  claudeJson: claudeJsonPath,
   settingsJson: join(CLAUDE_HOME, 'settings.json'),
   pluginsRoot: join(CLAUDE_HOME, 'plugins'),
   installedPluginsJson: join(CLAUDE_HOME, 'plugins', 'installed_plugins.json'),

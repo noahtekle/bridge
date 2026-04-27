@@ -21,6 +21,7 @@
     "build:mac": "pnpm --filter @bridge/desktop build:mac",
     "build:win": "pnpm --filter @bridge/desktop build:win",
     "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --workspace-concurrency=1 --if-present test",
     "lint": "pnpm -r lint",
     "format": "prettier --write \"**/*.{ts,tsx,json,md,yml,yaml}\""
   },
