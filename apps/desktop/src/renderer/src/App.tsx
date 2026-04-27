@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Boxes, Moon, Sun, Monitor, ShieldCheck } from 'lucide-react';
+import { Moon, Sun, Monitor, ShieldCheck } from 'lucide-react';
 
 import type { AppInfo, ThemeSource } from '@bridge/core';
 
@@ -38,19 +38,12 @@ export default function App(): JSX.Element {
         transition={{ duration: 0.32, ease: [0, 0, 0.2, 1] }}
         className="w-full max-w-2xl space-y-8"
       >
-        <header className="space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#1E40AF]">
-              <Boxes className="h-5 w-5 text-white" strokeWidth={1.75} />
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight">Bridge</h1>
-              <p className="text-sm text-muted">The OS for Claude Code</p>
-            </div>
-          </div>
-          <p className="text-sm text-muted">
-            Day 0 scaffold. Real shell ships in Week 1. This screen verifies the runtime is wired
-            correctly before we start building the dashboard.
+        <header className="space-y-2">
+          <div className="text-xs uppercase tracking-[0.18em] text-subtle">Day 0 · scaffold</div>
+          <h1 className="text-2xl font-semibold tracking-tight">Bridge</h1>
+          <p className="text-sm text-muted">The OS for Claude Code.</p>
+          <p className="pt-2 text-sm text-muted">
+            This screen verifies the runtime is wired correctly. Real shell ships in Week 1.
           </p>
         </header>
 
