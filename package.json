@@ -1,0 +1,37 @@
+{
+  "name": "bridge",
+  "version": "0.0.1",
+  "private": true,
+  "description": "The OS for Claude Code — visual dashboard for MCPs, Skills, Agents, Plugins, and slash commands.",
+  "license": "MIT",
+  "author": "noahtekle",
+  "homepage": "https://github.com/noahtekle/bridge",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/noahtekle/bridge.git"
+  },
+  "packageManager": "pnpm@10.33.1",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @bridge/desktop dev",
+    "build": "pnpm --filter @bridge/desktop build",
+    "build:mac": "pnpm --filter @bridge/desktop build:mac",
+    "build:win": "pnpm --filter @bridge/desktop build:win",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md,yml,yaml}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
+  }
+}

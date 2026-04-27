@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest an improvement to Bridge
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: A clear description of the user pain or workflow gap.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What would Bridge do differently?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you thought about and rejected, and why.
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Personal priority
+      options:
+        - Nice to have
+        - Would meaningfully improve my workflow
+        - Blocking my use of Bridge
+    validations:
+      required: true

@@ -1,0 +1,56 @@
+appId: com.bridge.app
+productName: Bridge
+copyright: Copyright (c) 2026 noahtekle
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - 'out/**/*'
+  - 'package.json'
+  - '!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}'
+  - '!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}'
+  - '!**/node_modules/*.d.ts'
+  - '!**/node_modules/.bin'
+  - '!**/{.DS_Store,.git,.gitignore,.editorconfig,Thumbs.db,thumbs.db,ehthumbs.db}'
+
+asarUnpack:
+  - '**/node_modules/better-sqlite3/**/*'
+  - '**/node_modules/keytar/**/*'
+
+# v0.1 ships unsigned. No signing config here.
+# Adding signing later requires:
+#   mac:    identity, hardenedRuntime: true, entitlements, notarize
+#   win:    certificateFile, certificatePassword OR Azure Trusted Signing
+mac:
+  category: public.app-category.developer-tools
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  hardenedRuntime: false
+  identity: null # explicitly disable signing for v0.1
+  gatekeeperAssess: false
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  # No certificateFile / certificatePassword — unsigned build for v0.1
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Bridge
+
+publish:
+  provider: github
+  owner: noahtekle
+  repo: bridge
+  releaseType: release

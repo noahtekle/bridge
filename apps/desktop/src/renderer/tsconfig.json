@@ -1,0 +1,23 @@
+{
+  "extends": "../../../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@bridge/core": ["../../../../packages/core/src/index.ts"],
+      "@bridge/core/*": ["../../../../packages/core/src/*"],
+      "@bridge/ui": ["../../../../packages/ui/src/index.ts"],
+      "@bridge/ui/*": ["../../../../packages/ui/src/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "../../../../packages/core/src/**/*",
+    "../../../../packages/ui/src/**/*"
+  ]
+}
