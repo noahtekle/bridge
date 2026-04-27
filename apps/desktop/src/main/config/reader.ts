@@ -1,5 +1,8 @@
+import { stat } from 'node:fs/promises';
+
 import type { StackItem } from '@bridge/core';
 
+import { CLAUDE_PATHS } from './paths';
 import { scanMcps } from './scan-mcps';
 import { scanPlugins } from './scan-plugins';
 import { scanSkills } from './scan-skills';
@@ -9,6 +12,7 @@ export interface ScanResult {
   items: StackItem[];
   scannedAt: number;
   durationMs: number;
+  claudeCodeDetected: boolean;
 }
 
 /**
@@ -22,14 +26,36 @@ export interface ScanResult {
  */
 export async function scanStack(): Promise<ScanResult> {
   const startedAt = Date.now();
-  const [mcps, plugins, skills, agents, commands] = await Promise.all([
+  const [mcps, plugins, skills, agents, commands, detected] = await Promise.all([
     scanMcps(),
     scanPlugins(),
     scanSkills(),
     scanAgents(),
     scanCommands(),
+    detectClaudeCode(),
   ]);
   const items = [...mcps, ...plugins, ...skills, ...agents, ...commands];
   const scannedAt = Date.now();
-  return { items, scannedAt, durationMs: scannedAt - startedAt };
+  return {
+    items,
+    scannedAt,
+    durationMs: scannedAt - startedAt,
+    claudeCodeDetected: detected,
+  };
+}
+
+async function detectClaudeCode(): Promise<boolean> {
+  // We treat either presence as proof of an install — a fresh user may have
+  // ~/.claude.json without the dir, or vice versa.
+  const checks = await Promise.all([
+    stat(CLAUDE_PATHS.home).then(
+      (s) => s.isDirectory(),
+      () => false,
+    ),
+    stat(CLAUDE_PATHS.claudeJson).then(
+      (s) => s.isFile(),
+      () => false,
+    ),
+  ]);
+  return checks.some(Boolean);
 }

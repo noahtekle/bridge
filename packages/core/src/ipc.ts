@@ -29,12 +29,11 @@ export const IPC_CHANNELS = {
   RESTORE_BACKUP: 'bridge:restore-backup',
 
   // Week 3 — GitHub import + settings.
-  IMPORT_FROM_GITHUB: 'bridge:import-from-github',
-  IMPORT_PROGRESS: 'bridge:import-progress',
+  PREVIEW_IMPORT: 'bridge:preview-import',
+  CONFIRM_IMPORT: 'bridge:confirm-import',
+  CANCEL_IMPORT: 'bridge:cancel-import',
   GET_SETTINGS: 'bridge:get-settings',
   UPDATE_SETTINGS: 'bridge:update-settings',
-  SET_GITHUB_TOKEN: 'bridge:set-github-token',
-  GET_GITHUB_TOKEN_STATUS: 'bridge:get-github-token-status',
 } as const;
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -80,6 +79,12 @@ export interface ListStackOptions {
 export interface ListStackResult {
   items: StackItem[];
   scannedAt: number;
+  /**
+   * False when neither `~/.claude/` nor `~/.claude.json` exists, indicating
+   * Claude Code probably isn't installed. The renderer shows a friendlier
+   * "couldn't find your install" screen in that case.
+   */
+  claudeCodeDetected: boolean;
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -114,6 +119,8 @@ export interface MutationResult {
 // ──────────────────────────────────────────────────────────────────────────
 
 export interface ImportPreview {
+  /** Token identifying the cloned tmp tree on the main side. Pass back to confirm/cancel. */
+  previewId: string;
   detectedCategory: StackCategory | 'ambiguous' | 'unknown';
   candidates: StackCategory[];
   name: string;
@@ -122,10 +129,25 @@ export interface ImportPreview {
   filesToWrite: { source: string; dest: string }[];
 }
 
-export interface ImportProgressEvent {
-  stage: 'cloning' | 'detecting' | 'writing' | 'done' | 'error';
-  message: string;
-  progress?: number;
+export interface PreviewImportRequest {
+  url: string;
+}
+
+export interface ConfirmImportRequest {
+  previewId: string;
+  /** What category the user chose. May differ from detected when the user overrides. */
+  category: StackCategory;
+  /** Name to install under (folder/key). Defaults to the detected name. */
+  name: string;
+}
+
+export interface ImportInstallResult {
+  ok: boolean;
+  installed: string[];
+  backupPath?: string;
+  error?: string;
+  /** When category === 'plugin' or otherwise can't auto-install, the CLI command to run. */
+  cliInstruction?: string;
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -137,6 +159,7 @@ export interface BridgeSettings {
   backupRetentionDays: number;
   backupRetentionCount: number;
   scanOnFocus: boolean;
+  hasSeenPrivacyModal: boolean;
 }
 
 export const DEFAULT_SETTINGS: BridgeSettings = {
@@ -144,6 +167,7 @@ export const DEFAULT_SETTINGS: BridgeSettings = {
   backupRetentionDays: 30,
   backupRetentionCount: 50,
   scanOnFocus: true,
+  hasSeenPrivacyModal: false,
 };
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -172,4 +196,12 @@ export interface BridgeApi {
   toggleItem: (request: ToggleItemRequest) => Promise<MutationResult>;
   updateItem: (request: UpdateItemRequest) => Promise<MutationResult>;
   deleteItem: (request: DeleteItemRequest) => Promise<MutationResult>;
+
+  // Week 3 — GitHub import + settings
+  previewImport: (request: PreviewImportRequest) => Promise<ImportPreview>;
+  confirmImport: (request: ConfirmImportRequest) => Promise<ImportInstallResult>;
+  cancelImport: (previewId: string) => Promise<void>;
+
+  getSettings: () => Promise<BridgeSettings>;
+  updateSettings: (partial: Partial<BridgeSettings>) => Promise<BridgeSettings>;
 }

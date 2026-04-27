@@ -17,6 +17,7 @@ interface StackStore {
   loading: boolean;
   error: string | null;
   scannedAt: number | null;
+  claudeCodeDetected: boolean;
 
   filter: CategoryFilter;
   search: string;
@@ -71,6 +72,7 @@ export const useStackStore = create<StackStore>((set, get) => ({
   loading: true,
   error: null,
   scannedAt: null,
+  claudeCodeDetected: true,
 
   filter: 'all',
   search: '',
@@ -86,7 +88,12 @@ export const useStackStore = create<StackStore>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const result = await window.bridge.listStack({ includeDisabled: true });
-      set({ items: result.items, scannedAt: result.scannedAt, loading: false });
+      set({
+        items: result.items,
+        scannedAt: result.scannedAt,
+        claudeCodeDetected: result.claudeCodeDetected,
+        loading: false,
+      });
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : 'Failed to read stack',
@@ -99,7 +106,12 @@ export const useStackStore = create<StackStore>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const result = await window.bridge.rescan();
-      set({ items: result.items, scannedAt: result.scannedAt, loading: false });
+      set({
+        items: result.items,
+        scannedAt: result.scannedAt,
+        claudeCodeDetected: result.claudeCodeDetected,
+        loading: false,
+      });
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : 'Rescan failed',
@@ -195,6 +207,7 @@ export function bindStackUpdates(): () => void {
     useStackStore.setState({
       items: result.items,
       scannedAt: result.scannedAt,
+      claudeCodeDetected: result.claudeCodeDetected,
       loading: false,
       error: null,
     });

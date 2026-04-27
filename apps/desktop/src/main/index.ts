@@ -6,11 +6,16 @@ import { join } from 'node:path';
 import {
   IPC_CHANNELS,
   type AppInfo,
+  type BridgeSettings,
+  type ConfirmImportRequest,
   type DeleteItemRequest,
+  type ImportInstallResult,
+  type ImportPreview,
   type ListStackOptions,
   type ListStackResult,
   type MutationResult,
   type Platform,
+  type PreviewImportRequest,
   type StackItem,
   type ThemeSource,
   type ToggleItemRequest,
@@ -25,8 +30,19 @@ import {
   type FileWatcherHandle,
   type ScanResult,
 } from './config';
+import {
+  cloneRepo,
+  detect,
+  install as installImport,
+  type CloneResult,
+} from './import';
+import { loadSettings, updateSettings } from './settings';
 
 const writer = new ConfigWriter();
+
+// Active import previews keyed by previewId. Each holds the cloned tmp tree
+// and a cleanup function. Cleared on confirm or cancel.
+const activeImports = new Map<string, { clone: CloneResult; preview: ImportPreview }>();
 
 const isDev = is.dev;
 
@@ -67,7 +83,11 @@ function toListResult(result: ScanResult, options?: ListStackOptions): ListStack
         return true;
       })
     : result.items;
-  return { items: filtered, scannedAt: result.scannedAt };
+  return {
+    items: filtered,
+    scannedAt: result.scannedAt,
+    claudeCodeDetected: result.claudeCodeDetected,
+  };
 }
 
 function createWindow(): BrowserWindow {
@@ -191,6 +211,76 @@ function registerIpcHandlers(): void {
     async (_event, request: DeleteItemRequest): Promise<MutationResult> =>
       runMutation((item) => writer.deleteItem(item), request.id),
   );
+
+  ipcMain.handle(
+    IPC_CHANNELS.PREVIEW_IMPORT,
+    async (_event, request: PreviewImportRequest): Promise<ImportPreview> => {
+      const clone = await cloneRepo(request.url);
+      try {
+        const detected = await detect(clone.path);
+        const previewId = `imp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const preview = { ...detected, previewId } satisfies ImportPreview;
+        activeImports.set(previewId, { clone, preview });
+
+        // Auto-clean orphaned previews after 10 minutes so a forgotten modal
+        // doesn't leak tmp dirs forever.
+        setTimeout(
+          () => {
+            const slot = activeImports.get(previewId);
+            if (slot) {
+              activeImports.delete(previewId);
+              void slot.clone.dispose();
+            }
+          },
+          10 * 60_000,
+        );
+
+        return preview;
+      } catch (err) {
+        await clone.dispose();
+        throw err;
+      }
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.CONFIRM_IMPORT,
+    async (_event, request: ConfirmImportRequest): Promise<ImportInstallResult> => {
+      const slot = activeImports.get(request.previewId);
+      if (!slot) {
+        return {
+          ok: false,
+          installed: [],
+          error: 'Preview expired or already used. Re-paste the URL.',
+        };
+      }
+      try {
+        const result = await installImport(slot.clone.path, request.category, request.name);
+        if (result.ok) {
+          await refreshScan();
+          broadcastStackUpdated();
+        }
+        return result;
+      } finally {
+        activeImports.delete(request.previewId);
+        void slot.clone.dispose();
+      }
+    },
+  );
+
+  ipcMain.handle(IPC_CHANNELS.CANCEL_IMPORT, async (_event, previewId: string): Promise<void> => {
+    const slot = activeImports.get(previewId);
+    if (!slot) return;
+    activeImports.delete(previewId);
+    await slot.clone.dispose();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.GET_SETTINGS, (): Promise<BridgeSettings> => loadSettings());
+  ipcMain.handle(
+    IPC_CHANNELS.UPDATE_SETTINGS,
+    async (_event, partial: Partial<BridgeSettings>): Promise<BridgeSettings> =>
+      updateSettings(partial),
+  );
 }
 
 async function runMutation(
@@ -266,6 +356,11 @@ app.whenReady().then(async () => {
 app.on('before-quit', async () => {
   await watcher?.close();
   watcher = null;
+  // Clean up any orphaned import tmp dirs.
+  for (const [, slot] of activeImports) {
+    await slot.clone.dispose().catch(() => undefined);
+  }
+  activeImports.clear();
 });
 
 app.on('window-all-closed', () => {

@@ -1,7 +1,11 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 
 import { Banners } from './Banners';
+import { CommandPalette } from './CommandPalette';
+import { ImportModal } from './ImportModal';
+import { PrivacyModal } from './PrivacyModal';
+import { SettingsPanel } from './SettingsPanel';
 import { Sidebar } from './Sidebar';
 import { SearchBar } from './SearchBar';
 import { StackGrid } from './StackGrid';
@@ -15,6 +19,8 @@ import {
   getFilteredItems,
   useStackStore,
 } from '@/store/stack';
+import { useImportStore } from '@/store/import';
+import { useSettingsStore } from '@/store/settings';
 
 export function Shell(): JSX.Element {
   const items = useStackStore((s) => s.items);
@@ -29,21 +35,69 @@ export function Shell(): JSX.Element {
   const loading = useStackStore((s) => s.loading);
   const load = useStackStore((s) => s.load);
   const scannedAt = useStackStore((s) => s.scannedAt);
+  const claudeCodeDetected = useStackStore((s) => s.claudeCodeDetected);
+  const rescan = useStackStore((s) => s.rescan);
 
-  // Boot: initial load + subscribe to push updates from main.
+  const openImport = useImportStore((s) => s.openModal);
+
+  const settings = useSettingsStore((s) => s.settings);
+  const settingsLoaded = useSettingsStore((s) => s.loaded);
+  const loadSettings = useSettingsStore((s) => s.load);
+  const updateSettings = useSettingsStore((s) => s.update);
+
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+
+  // Boot: initial load + subscribe to push updates from main + load settings.
   useEffect(() => {
     void load();
+    void loadSettings();
     const unsubscribe = bindStackUpdates();
     return unsubscribe;
-  }, [load]);
+  }, [load, loadSettings]);
 
-  // Cmd/Ctrl-R triggers a manual rescan.
+  // Auto-show privacy modal once on first run.
+  useEffect(() => {
+    if (settingsLoaded && !settings.hasSeenPrivacyModal) {
+      setPrivacyOpen(true);
+    }
+  }, [settingsLoaded, settings.hasSeenPrivacyModal]);
+
+  // Rescan when window regains focus, when the user opted in via Settings.
+  useEffect(() => {
+    if (!settings.scanOnFocus) return;
+    const onFocus = (): void => {
+      void useStackStore.getState().rescan();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [settings.scanOnFocus]);
+
+  // Global hotkeys.
   useEffect(() => {
     const handler = (event: KeyboardEvent): void => {
       const isMod = event.metaKey || event.ctrlKey;
+
+      if (isMod && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setPaletteOpen(true);
+        return;
+      }
       if (isMod && event.key.toLowerCase() === 'r') {
         event.preventDefault();
         void useStackStore.getState().rescan();
+        return;
+      }
+      if (isMod && event.key.toLowerCase() === 'n') {
+        event.preventDefault();
+        openImport();
+        return;
+      }
+      if (isMod && event.key === ',') {
+        event.preventDefault();
+        setSettingsOpen(true);
+        return;
       }
       if (event.key === 'Escape' && useStackStore.getState().selectedId) {
         useStackStore.getState().setSelected(null);
@@ -51,7 +105,7 @@ export function Shell(): JSX.Element {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [openImport]);
 
   const filtered = useMemo(
     () => getFilteredItems({ items, filter, search } as never),
@@ -63,14 +117,25 @@ export function Shell(): JSX.Element {
     [items, selectedId],
   );
 
-  const showReveal = !hasSeenReveal && !loading && scannedAt !== null;
+  const showReveal =
+    !hasSeenReveal && !loading && scannedAt !== null && !privacyOpen;
   const stackHasItems = items.length > 0;
+
+  const closePrivacy = (): void => {
+    setPrivacyOpen(false);
+    if (!settings.hasSeenPrivacyModal) {
+      void updateSettings({ hasSeenPrivacyModal: true });
+    }
+  };
 
   return (
     <div className="relative flex h-full w-full">
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggleCollapsed={() => setSidebarCollapsed(!sidebarCollapsed)}
+        onOpenImport={openImport}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenPalette={() => setPaletteOpen(true)}
       />
 
       <main className="flex h-full min-w-0 flex-1 flex-col">
@@ -94,10 +159,16 @@ export function Shell(): JSX.Element {
         <div className="relative flex-1 overflow-y-auto p-6">
           {loading && !stackHasItems ? (
             <ScanningState />
+          ) : !claudeCodeDetected ? (
+            <EmptyState category="all" claudeCodeMissing onRescan={() => void rescan()} />
           ) : !stackHasItems ? (
-            <EmptyState category="all" />
+            <EmptyState category="all" onImport={openImport} />
           ) : filtered.length === 0 ? (
-            <EmptyState category={filter === 'all' ? 'all' : filter} filtered />
+            <EmptyState
+              category={filter === 'all' ? 'all' : filter}
+              filtered
+              onImport={openImport}
+            />
           ) : (
             <StackGrid items={filtered} selectedId={selectedId} onSelect={setSelected} />
           )}
@@ -105,6 +176,24 @@ export function Shell(): JSX.Element {
       </main>
 
       <DetailPanel item={selectedItem} onClose={() => setSelected(null)} />
+
+      <ImportModal />
+      <SettingsPanel
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onShowPrivacy={() => {
+          setSettingsOpen(false);
+          setPrivacyOpen(true);
+        }}
+      />
+      <PrivacyModal open={privacyOpen} onClose={closePrivacy} />
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onOpenImport={openImport}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenPrivacy={() => setPrivacyOpen(true)}
+      />
 
       <AnimatePresence>
         {showReveal && (

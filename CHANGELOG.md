@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Week 3 — Import + polish
+
+- **GitHub import**: paste URL → shallow clone to tmp → filename signal detection → preview screen with override → install with backup-first
+  - Detection: `SKILL.md`, `plugin.json`, `mcpServers` field in `mcp.json` / `.mcp.json` / `claude_desktop_config.json`, `agents/*.md`, `commands/*.md`
+  - Reports `ambiguous` when multiple signals match (user picks via override)
+  - Reports `unknown` when no signal matches (user picks manually)
+  - Plugin installs route to Claude Code with the CLI command surfaced — Bridge doesn't fork the install pipeline
+  - Two-step IPC: `previewImport` → `confirmImport` / `cancelImport`, with a 10-minute auto-cleanup timeout for orphaned previews
+- **Cmd-K command palette** (`cmdk`) — searches stack items, top-level actions, quick toggles, and quick deletes
+- **Settings panel** with theme (system/light/dark), backup retention (count + days), scan-on-focus toggle, and a privacy-summary deeplink
+- **Privacy modal** auto-shown on first run (after which `hasSeenPrivacyModal` is persisted to `<userData>/bridge-settings.json`)
+- **"Claude Code not detected" fallback** — when neither `~/.claude/` nor `~/.claude.json` exist, renders an install-prompt screen with a Rescan button instead of empty cards
+- Empty states now offer "Import from GitHub" CTAs
+- Full hotkey set wired: `Cmd-K` palette, `Cmd-,` settings, `Cmd-N` new (import), `Cmd-R` rescan, `Cmd-F` focus search, `Esc` close
+- Sidebar has "Import from GitHub", "Command palette", "Rescan", and "Settings" entries with keyboard hints
+- 12 new tests for the detect logic (single signal, ambiguous, unknown, README snippet extraction, install plan)
+
 ### Week 2 — Writes
 
 - `ConfigWriter` class with serialized mutation queue, backup-first, atomic writes
