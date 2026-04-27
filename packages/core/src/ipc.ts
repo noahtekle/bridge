@@ -153,4 +153,9 @@ export interface BridgeApi {
   getTheme: () => Promise<ThemeState>;
   setThemeSource: (source: ThemeSource) => void;
   onThemeUpdated: (handler: (state: ThemeState) => void) => () => void;
+
+  // Week 1 — read pipeline
+  listStack: (options?: ListStackOptions) => Promise<ListStackResult>;
+  rescan: () => Promise<ListStackResult>;
+  onStackUpdated: (handler: (result: ListStackResult) => void) => () => void;
 }
