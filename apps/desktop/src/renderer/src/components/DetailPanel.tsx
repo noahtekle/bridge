@@ -1,9 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { CircleAlert, FileText, Folder, X } from 'lucide-react';
+import { CircleAlert, FileText, Folder, Pencil, Trash2, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import type { StackItem } from '@bridge/core';
 
 import { cn } from '@/lib/utils';
+import { useStackStore } from '@/store/stack';
 import { CategoryIcon } from './CategoryIcon';
 
 interface DetailPanelProps {
@@ -61,15 +63,7 @@ function Panel({ item, onClose }: { item: StackItem; onClose: () => void }): JSX
       )}
 
       <div className="flex-1 space-y-5 overflow-y-auto p-5">
-        <Section title="Description">
-          {item.description ? (
-            <p className="text-sm leading-relaxed text-muted">{item.description}</p>
-          ) : (
-            <p className="text-sm italic text-subtle">
-              No description. (You&apos;ll be able to add your own in Week 3.)
-            </p>
-          )}
-        </Section>
+        <DescriptionSection item={item} />
 
         <Section title="Source">
           <DetailRow label="Type" value={labelFor(item)} />
@@ -122,17 +116,169 @@ function Panel({ item, onClose }: { item: StackItem; onClose: () => void }): JSX
         </Section>
       </div>
 
-      <footer className="border-t border-border-subtle px-5 py-3 text-xs text-subtle">
-        Read-only in Week 1. Toggle, edit, and delete actions ship in Week 2.
-      </footer>
+      <DeleteFooter item={item} />
     </motion.aside>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }): JSX.Element {
+function DescriptionSection({ item }: { item: StackItem }): JSX.Element {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(item.description);
+  const updateDescription = useStackStore((s) => s.updateDescription);
+  const isPending = useStackStore((s) => s.pendingIds.has(item.id));
+
+  // Reset draft when the user opens a different item.
+  useEffect(() => {
+    setDraft(item.description);
+    setEditing(false);
+  }, [item.id, item.description]);
+
+  const canEdit =
+    item.category === 'skill' || item.category === 'agent' || item.category === 'command';
+
+  if (editing) {
+    return (
+      <Section title="Description">
+        <textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          rows={4}
+          className="w-full resize-none rounded-md border border-border bg-bg px-3 py-2 text-sm leading-relaxed text-text outline-none transition-colors duration-fast focus:border-accent/60"
+          placeholder="What does this do?"
+        />
+        <div className="mt-2 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setDraft(item.description);
+              setEditing(false);
+            }}
+            className="cursor-pointer rounded-md px-3 py-1.5 text-sm text-muted transition-colors duration-fast hover:bg-surface-raised hover:text-text"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={isPending || draft === item.description}
+            onClick={async () => {
+              await updateDescription(item, draft);
+              setEditing(false);
+            }}
+            className={cn(
+              'rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-fast',
+              isPending || draft === item.description
+                ? 'cursor-not-allowed bg-surface-raised text-subtle'
+                : 'cursor-pointer bg-text text-bg hover:bg-text/90',
+            )}
+          >
+            {isPending ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </Section>
+    );
+  }
+
+  return (
+    <Section
+      title="Description"
+      action={
+        canEdit ? (
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="flex cursor-pointer items-center gap-1 rounded text-[10px] font-medium uppercase tracking-[0.14em] text-subtle transition-colors duration-fast hover:text-text"
+          >
+            <Pencil className="h-3 w-3" strokeWidth={1.75} />
+            Edit
+          </button>
+        ) : undefined
+      }
+    >
+      {item.description ? (
+        <p className="text-sm leading-relaxed text-muted">{item.description}</p>
+      ) : (
+        <p className="text-sm italic text-subtle">
+          {canEdit ? 'No description. Click Edit to add one.' : 'No description.'}
+        </p>
+      )}
+    </Section>
+  );
+}
+
+function DeleteFooter({ item }: { item: StackItem }): JSX.Element {
+  const [confirming, setConfirming] = useState(false);
+  const isPending = useStackStore((s) => s.pendingIds.has(item.id));
+  const deleteItem = useStackStore((s) => s.deleteItem);
+
+  if (item.category === 'plugin') {
+    return (
+      <footer className="border-t border-border-subtle px-5 py-3 text-xs text-subtle">
+        Plugins are managed via Claude Code — uninstall there.
+      </footer>
+    );
+  }
+
+  if (confirming) {
+    return (
+      <footer className="space-y-2 border-t border-border-subtle bg-error/5 px-5 py-3">
+        <p className="text-sm text-text">
+          Delete <strong>{item.name}</strong>? A backup is kept under{' '}
+          <span className="font-mono text-xs">~/.claude/backups/</span>.
+        </p>
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setConfirming(false)}
+            className="cursor-pointer rounded-md px-3 py-1.5 text-sm text-muted transition-colors duration-fast hover:bg-surface-raised hover:text-text"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={async () => {
+              await deleteItem(item);
+              setConfirming(false);
+            }}
+            className="cursor-pointer rounded-md bg-error px-3 py-1.5 text-sm font-medium text-white transition-colors duration-fast hover:bg-error/90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isPending ? 'Deleting…' : 'Delete'}
+          </button>
+        </div>
+      </footer>
+    );
+  }
+
+  return (
+    <footer className="flex items-center justify-between border-t border-border-subtle px-5 py-3">
+      <span className="text-xs text-subtle">Toggle, edit, delete enabled.</span>
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        className="flex cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1 text-xs text-error transition-colors duration-fast hover:bg-error/10"
+      >
+        <Trash2 className="h-3 w-3" strokeWidth={1.75} />
+        Delete
+      </button>
+    </footer>
+  );
+}
+
+function Section({
+  title,
+  children,
+  action,
+}: {
+  title: string;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}): JSX.Element {
   return (
     <section className="space-y-2">
-      <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-subtle">{title}</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-subtle">{title}</h3>
+        {action}
+      </div>
       <div className="space-y-1">{children}</div>
     </section>
   );

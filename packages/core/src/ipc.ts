@@ -91,6 +91,15 @@ export interface ToggleItemRequest {
   enabled: boolean;
 }
 
+export interface UpdateItemRequest {
+  id: string;
+  description?: string;
+}
+
+export interface DeleteItemRequest {
+  id: string;
+}
+
 export interface MutationResult {
   ok: boolean;
   /** Path of the backup written before the mutation, if any. */
@@ -158,4 +167,9 @@ export interface BridgeApi {
   listStack: (options?: ListStackOptions) => Promise<ListStackResult>;
   rescan: () => Promise<ListStackResult>;
   onStackUpdated: (handler: (result: ListStackResult) => void) => () => void;
+
+  // Week 2 — writes
+  toggleItem: (request: ToggleItemRequest) => Promise<MutationResult>;
+  updateItem: (request: UpdateItemRequest) => Promise<MutationResult>;
+  deleteItem: (request: DeleteItemRequest) => Promise<MutationResult>;
 }

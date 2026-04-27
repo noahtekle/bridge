@@ -6,18 +6,27 @@ import { join } from 'node:path';
 import {
   IPC_CHANNELS,
   type AppInfo,
+  type DeleteItemRequest,
   type ListStackOptions,
   type ListStackResult,
+  type MutationResult,
   type Platform,
+  type StackItem,
   type ThemeSource,
+  type ToggleItemRequest,
+  type UpdateItemRequest,
 } from '@bridge/core';
 
 import {
+  ConfigWriter,
+  rotateBackups,
   scanStack,
   startFileWatcher,
   type FileWatcherHandle,
   type ScanResult,
 } from './config';
+
+const writer = new ConfigWriter();
 
 const isDev = is.dev;
 
@@ -151,6 +160,63 @@ function registerIpcHandlers(): void {
     broadcastStackUpdated();
     return toListResult(result);
   });
+
+  ipcMain.handle(
+    IPC_CHANNELS.TOGGLE_ITEM,
+    async (_event, request: ToggleItemRequest): Promise<MutationResult> =>
+      runMutation((item) => {
+        if (item.category === 'plugin') return writer.togglePlugin(item, request.enabled);
+        if (item.category === 'mcp') return writer.toggleMcp(item, request.enabled);
+        return writer.toggleFileItem(item, request.enabled);
+      }, request.id),
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.UPDATE_ITEM,
+    async (_event, request: UpdateItemRequest): Promise<MutationResult> =>
+      runMutation((item) => {
+        if (request.description !== undefined) {
+          return writer.updateDescription(item, request.description);
+        }
+        return Promise.resolve<MutationResult>({
+          ok: false,
+          needsRestart: false,
+          error: 'No fields provided to update',
+        });
+      }, request.id),
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.DELETE_ITEM,
+    async (_event, request: DeleteItemRequest): Promise<MutationResult> =>
+      runMutation((item) => writer.deleteItem(item), request.id),
+  );
+}
+
+async function runMutation(
+  fn: (item: StackItem) => Promise<MutationResult>,
+  id: string,
+): Promise<MutationResult> {
+  const item = latestScan?.items.find((it) => it.id === id);
+  if (!item) {
+    return { ok: false, needsRestart: false, error: `Item ${id} not in current scan` };
+  }
+  try {
+    const result = await fn(item);
+    if (result.ok) {
+      // Pre-emptively rescan + broadcast so the UI updates without waiting
+      // for the FileWatcher debounce to kick in.
+      await refreshScan();
+      broadcastStackUpdated();
+    }
+    return result;
+  } catch (err) {
+    return {
+      ok: false,
+      needsRestart: false,
+      error: err instanceof Error ? err.message : 'Unknown mutation error',
+    };
+  }
 }
 
 app.whenReady().then(async () => {
@@ -182,6 +248,12 @@ app.whenReady().then(async () => {
     void refreshScan().then(() => {
       broadcastStackUpdated();
     });
+  });
+
+  // Backup retention runs in the background — never blocks app boot.
+  // 30 days OR last 50 backups, whichever is more permissive.
+  void rotateBackups({ retainCount: 50, retainDays: 30 }).catch((err) => {
+    console.error('[bridge] backup rotation failed:', err);
   });
 
   createWindow();

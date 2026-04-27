@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 
+import { Banners } from './Banners';
 import { Sidebar } from './Sidebar';
 import { SearchBar } from './SearchBar';
 import { StackGrid } from './StackGrid';
@@ -87,6 +88,8 @@ export function Shell(): JSX.Element {
             <SearchBar />
           </div>
         </header>
+
+        <Banners />
 
         <div className="relative flex-1 overflow-y-auto p-6">
           {loading && !stackHasItems ? (
