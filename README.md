@@ -35,8 +35,8 @@ Bridge is the missing GUI layer.
 
 | Platform | Download |
 |---|---|
-| macOS (Apple Silicon + Intel) | [`Bridge-<version>.dmg`](https://github.com/noahtekle/bridge/releases/latest) |
-| Windows (x64) | [`Bridge-Setup-<version>.exe`](https://github.com/noahtekle/bridge/releases/latest) |
+| macOS (Apple Silicon + Intel) | [Latest release](https://github.com/noahtekle/bridge/releases/latest) |
+| Windows (x64) | [Latest release](https://github.com/noahtekle/bridge/releases/latest) |
 
 Or build from source:
 
@@ -49,14 +49,9 @@ pnpm dev
 
 ## Why is this unsigned?
 
-v0.1 ships unsigned. Cost decision:
+Bridge is open source. Every write is backed up first. There are no outbound network calls except when you explicitly trigger a GitHub import. You can read the source before you run it.
 
-- **Apple Developer Program:** $99/year + notarization round-trip per release
-- **Windows code-signing certificate:** $200–500/year from a CA
-
-For an indie v0.1 with zero users, signing is bad ROI. Source is public, all writes are backed up first, no network calls except when you explicitly trigger a GitHub import — you can audit before approving. Once you trust the build, your OS remembers and won't warn again.
-
-Signing comes back once the project sees real traction.
+Signing adds a layer of OS-level trust on top of that. It's on the roadmap for a future release. For v0.1, the safety case stands on its own — public source, atomic backed-up writes, zero telemetry. Once you approve the app on first launch, your OS remembers and never warns again.
 
 ### macOS — first launch
 

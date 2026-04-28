@@ -10,7 +10,6 @@ metrics, no exaggerated user counts, no testimonials.
 - [ ] `bridge-app.pages.dev` is live and renders correctly
 - [ ] README screenshot loads from the raw GitHub URL
 - [ ] Tested both downloads on a clean machine (Mac + Windows) once
-- [ ] Replace `<RELEASE_URL>` and `<SCREENSHOT_URL>` placeholders below
 
 ---
 
