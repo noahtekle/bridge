@@ -35,6 +35,7 @@ import {
   cloneRepo,
   detect,
   install as installImport,
+  resolveSubPath,
   type CloneResult,
 } from './import';
 import { loadCurated } from './discover';
@@ -42,9 +43,16 @@ import { loadSettings, updateSettings } from './settings';
 
 const writer = new ConfigWriter();
 
-// Active import previews keyed by previewId. Each holds the cloned tmp tree
-// and a cleanup function. Cleared on confirm or cancel.
-const activeImports = new Map<string, { clone: CloneResult; preview: ImportPreview }>();
+// Active import previews keyed by previewId. We track both the raw clone
+// (for cleanup) and the "logical root" — the cloneRoot when no subPath was
+// supplied, or `<cloneRoot>/<subPath>` when one was. detect + install
+// always run against the logical root, so subPath handling stays in one
+// place (the IPC handler) and the rest of the import pipeline doesn't
+// need to know about subpaths.
+const activeImports = new Map<
+  string,
+  { clone: CloneResult; logicalRoot: string; preview: ImportPreview }
+>();
 
 const isDev = is.dev;
 
@@ -232,10 +240,11 @@ function registerIpcHandlers(): void {
     async (_event, request: PreviewImportRequest): Promise<ImportPreview> => {
       const clone = await cloneRepo(request.url);
       try {
-        const detected = await detect(clone.path);
+        const logicalRoot = await resolveSubPath(clone.path, request.subPath);
+        const detected = await detect(logicalRoot);
         const previewId = `imp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         const preview = { ...detected, previewId } satisfies ImportPreview;
-        activeImports.set(previewId, { clone, preview });
+        activeImports.set(previewId, { clone, logicalRoot, preview });
 
         // Auto-clean orphaned previews after 10 minutes so a forgotten modal
         // doesn't leak tmp dirs forever.
@@ -270,7 +279,7 @@ function registerIpcHandlers(): void {
         };
       }
       try {
-        const result = await installImport(slot.clone.path, request.category, request.name);
+        const result = await installImport(slot.logicalRoot, request.category, request.name);
         if (result.ok) {
           await refreshScan();
           broadcastStackUpdated();

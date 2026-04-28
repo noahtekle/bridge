@@ -12,6 +12,12 @@ interface ImportStore {
   open: boolean;
   stage: ImportStage;
   url: string;
+  /**
+   * Optional subdirectory inside the repo. Used by Discover entries that
+   * point at monorepos. Set automatically by openModalWithUrl, not exposed
+   * in the manual-paste UI.
+   */
+  subPath: string | null;
   /** User can override the auto-detected category before confirming. */
   overrideCategory: StackCategory | null;
   /** Editable name (defaults to detected name). */
@@ -21,8 +27,8 @@ interface ImportStore {
   error: string | null;
 
   openModal: () => void;
-  /** Open with a URL pre-filled and immediately fetch the preview. */
-  openModalWithUrl: (url: string) => Promise<void>;
+  /** Open with a URL (and optional subPath) pre-filled and immediately fetch the preview. */
+  openModalWithUrl: (url: string, subPath?: string) => Promise<void>;
   closeModal: () => Promise<void>;
   setUrl: (url: string) => void;
   setOverrideCategory: (category: StackCategory | null) => void;
@@ -36,19 +42,29 @@ export const useImportStore = create<ImportStore>((set, get) => ({
   open: false,
   stage: 'idle',
   url: '',
+  subPath: null,
   overrideCategory: null,
   editableName: '',
   preview: null,
   installResult: null,
   error: null,
 
-  openModal: () => set({ open: true, stage: 'idle', url: '', preview: null, error: null }),
+  openModal: () =>
+    set({
+      open: true,
+      stage: 'idle',
+      url: '',
+      subPath: null,
+      preview: null,
+      error: null,
+    }),
 
-  openModalWithUrl: async (url) => {
+  openModalWithUrl: async (url, subPath) => {
     set({
       open: true,
       stage: 'idle',
       url,
+      subPath: subPath ?? null,
       preview: null,
       error: null,
       overrideCategory: null,
@@ -70,6 +86,7 @@ export const useImportStore = create<ImportStore>((set, get) => ({
       open: false,
       stage: 'idle',
       url: '',
+      subPath: null,
       overrideCategory: null,
       editableName: '',
       preview: null,
@@ -90,7 +107,8 @@ export const useImportStore = create<ImportStore>((set, get) => ({
     }
     set({ stage: 'loading', error: null });
     try {
-      const preview = await window.bridge.previewImport({ url });
+      const subPath = get().subPath ?? undefined;
+      const preview = await window.bridge.previewImport({ url, subPath });
       set({
         preview,
         stage: 'preview',

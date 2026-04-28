@@ -133,6 +133,11 @@ export interface ImportPreview {
 
 export interface PreviewImportRequest {
   url: string;
+  /**
+   * Optional subdirectory inside the repo to detect + install against.
+   * See DiscoverEntry.subPath for the rationale.
+   */
+  subPath?: string;
 }
 
 export interface ConfirmImportRequest {

@@ -18,6 +18,19 @@ export interface DiscoverEntry {
   category: StackCategory;
   /** GitHub repo URL — must be cloneable via the Bridge import flow. */
   repoUrl: string;
+  /**
+   * Optional subdirectory inside `repoUrl` that contains the actual thing.
+   * Use this for monorepos where one repo holds many installable items
+   * (e.g. `anthropics/claude-plugins-official` → `plugins/superpowers`,
+   * `modelcontextprotocol/servers` → `src/filesystem`).
+   *
+   * When provided, Bridge clones the repo as usual, then runs detection
+   * and install against `<clone>/<subPath>` instead of the repo root.
+   *
+   * Path is normalized and validated to stay inside the cloned tree —
+   * any `..` traversal is rejected.
+   */
+  subPath?: string;
   /** One- or two-sentence description. Renders as the card subtitle. */
   description: string;
   /** Why this entry made the curated list. Renders below description. */
