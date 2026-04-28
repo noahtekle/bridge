@@ -68,12 +68,12 @@ export function StackCard({ item, selected, onSelect }: StackCardProps): JSX.Ele
           !item.description && 'italic text-subtle',
         )}
       >
-        {item.description || 'No description.'}
+        {item.description || cardSubtitle(item)}
       </div>
 
       <div className="mt-3 flex flex-wrap gap-1.5">
-        <CategoryPill category={item.category} />
-        <SourcePill item={item} />
+        <CategoryPill item={item} />
+        {item.category !== 'hook' && <SourcePill item={item} />}
         {item.needsRestart && <RestartPill />}
       </div>
     </motion.button>
@@ -135,6 +135,7 @@ const CATEGORY_LABEL: Record<StackItem['category'], string> = {
   skill: 'Skill',
   agent: 'Agent',
   command: 'Command',
+  hook: 'Hook',
 };
 
 const CATEGORY_PILL_COLOR: Record<StackItem['category'], string> = {
@@ -143,17 +144,34 @@ const CATEGORY_PILL_COLOR: Record<StackItem['category'], string> = {
   skill: 'bg-[#78350F] text-[#fcd34d]',
   agent: 'bg-[#831843] text-[#f9a8d4]',
   command: 'bg-[#155E75] text-[#67e8f9]',
+  hook: 'bg-[#064E3B] text-[#6ee7b7]',
 };
 
-function CategoryPill({ category }: { category: StackItem['category'] }): JSX.Element {
+function CategoryPill({ item }: { item: StackItem }): JSX.Element {
+  // Hook cards swap the generic "Hook" label for the actual event type
+  // (PreToolUse / PostToolUse / Stop / etc.) — that's the meaningful
+  // identifier, and there's no other obvious place for it on the card.
+  if (item.category === 'hook') {
+    const event = typeof item.metadata.eventType === 'string' ? item.metadata.eventType : 'Hook';
+    return (
+      <span
+        className={cn(
+          'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide font-mono',
+          CATEGORY_PILL_COLOR.hook,
+        )}
+      >
+        {event}
+      </span>
+    );
+  }
   return (
     <span
       className={cn(
         'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide',
-        CATEGORY_PILL_COLOR[category],
+        CATEGORY_PILL_COLOR[item.category],
       )}
     >
-      {CATEGORY_LABEL[category]}
+      {CATEGORY_LABEL[item.category]}
     </span>
   );
 }
@@ -172,6 +190,21 @@ function RestartPill(): JSX.Element {
       restart
     </span>
   );
+}
+
+/**
+ * Hooks have no description by default — we surface the command itself as
+ * the subtitle so the card reads like a card, not an empty placeholder.
+ * Truncated to keep the layout stable.
+ */
+function cardSubtitle(item: StackItem): string {
+  if (item.category === 'hook') {
+    const cmd = typeof item.metadata.command === 'string' ? item.metadata.command : '';
+    if (cmd) {
+      return cmd.length > 80 ? `${cmd.slice(0, 80)}…` : cmd;
+    }
+  }
+  return 'No description.';
 }
 
 function sourceLabel(item: StackItem): string {

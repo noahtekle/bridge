@@ -1,0 +1,45 @@
+---
+interface Props {
+  id?: string;
+  /** Eyebrow text in caps above the heading. */
+  eyebrow?: string;
+  /** Main section heading. */
+  heading?: string;
+  /** Optional subheading below the heading. */
+  subheading?: string;
+  /** Add extra top/bottom padding for the hero. */
+  hero?: boolean;
+  class?: string;
+}
+
+const { id, eyebrow, heading, subheading, hero, class: className = '' } = Astro.props;
+---
+
+<section
+  id={id}
+  data-scroll-reveal
+  class:list={[
+    'scroll-reveal mx-auto w-full max-w-5xl px-6',
+    hero ? 'py-20 sm:py-28' : 'py-14 sm:py-20',
+    className,
+  ]}
+>
+  {(eyebrow || heading || subheading) && (
+    <header class="mb-10 sm:mb-14">
+      {eyebrow && (
+        <div class="text-[10px] font-medium uppercase tracking-[0.22em] text-subtle">
+          {eyebrow}
+        </div>
+      )}
+      {heading && (
+        <h2 class="mt-2 text-2xl font-semibold tracking-tight text-text sm:text-3xl">
+          {heading}
+        </h2>
+      )}
+      {subheading && (
+        <p class="mt-2 max-w-2xl text-base text-muted sm:text-lg">{subheading}</p>
+      )}
+    </header>
+  )}
+  <slot />
+</section>

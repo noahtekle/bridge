@@ -1,0 +1,91 @@
+---
+type Category = 'mcp' | 'skill' | 'agent' | 'plugin' | 'command' | 'hook';
+interface Props {
+  category: Category;
+  size?: number;
+  class?: string;
+}
+
+const { category, size = 32, class: className = '' } = Astro.props;
+
+const GRADIENTS: Record<Category, { from: string; to: string }> = {
+  mcp: { from: '#3B82F6', to: '#1E40AF' },
+  skill: { from: '#F59E0B', to: '#B45309' },
+  agent: { from: '#EC4899', to: '#9D174D' },
+  plugin: { from: '#A855F7', to: '#6B21A8' },
+  command: { from: '#06B6D4', to: '#0E7490' },
+  hook: { from: '#10B981', to: '#047857' },
+};
+
+const colors = GRADIENTS[category];
+const gid = `bw-grad-${category}`;
+const stroke = 'rgba(255,255,255,0.95)';
+---
+
+<svg
+  role="img"
+  aria-label={`${category} icon`}
+  width={size}
+  height={size}
+  viewBox="0 0 32 32"
+  class={`shrink-0 ${className}`}
+>
+  <defs>
+    <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color={colors.from} />
+      <stop offset="100%" stop-color={colors.to} />
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="32" height="32" rx="7" fill={`url(#${gid})`} />
+
+  {category === 'mcp' && (
+    <g stroke={stroke} stroke-width="1.75" stroke-linecap="round" fill="none">
+      <path d="M11 10 v12" />
+      <path d="M16 8 v16" />
+      <path d="M21 10 v12" />
+      <circle cx="11" cy="10" r="0.6" fill={stroke} stroke="none" />
+      <circle cx="16" cy="8" r="0.6" fill={stroke} stroke="none" />
+      <circle cx="21" cy="10" r="0.6" fill={stroke} stroke="none" />
+    </g>
+  )}
+
+  {category === 'skill' && (
+    <g stroke={stroke} stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M16 9 l1.6 4.2 l4.4 0.4 l-3.4 2.9 l1 4.3 l-3.6 -2.4 l-3.6 2.4 l1 -4.3 l-3.4 -2.9 l4.4 -0.4 z" />
+    </g>
+  )}
+
+  {category === 'agent' && (
+    <g stroke={stroke} stroke-width="1.75" fill="none">
+      <circle cx="16" cy="16" r="6.5" />
+      <circle cx="16" cy="16" r="2.4" fill={stroke} stroke="none" />
+    </g>
+  )}
+
+  {category === 'plugin' && (
+    <g stroke={stroke} stroke-width="1.75" stroke-linecap="round" fill="none">
+      <path d="M12 9 v4" />
+      <path d="M20 9 v4" />
+      <path d="M10 14 h12 v3 a4 4 0 0 1 -4 4 h-4 a4 4 0 0 1 -4 -4 z" />
+      <path d="M16 21 v3" />
+    </g>
+  )}
+
+  {category === 'command' && (
+    <g stroke={stroke} stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M11 21 l4 -10" />
+      <rect x="17" y="11" width="6" height="10" rx="1.5" />
+      <path d="M19 16 h2" />
+    </g>
+  )}
+
+  {category === 'hook' && (
+    <g stroke={stroke} stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <circle cx="10" cy="16" r="1.6" fill={stroke} />
+      <path d="M11.5 16 h3.5 l3 -4 h2.5" />
+      <path d="M11.5 16 h3.5 l3 4 h2.5" />
+      <circle cx="22" cy="12" r="1.6" fill={stroke} />
+      <circle cx="22" cy="20" r="1.6" fill={stroke} />
+    </g>
+  )}
+</svg>

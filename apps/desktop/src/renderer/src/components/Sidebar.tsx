@@ -1,4 +1,12 @@
-import { ChevronsLeft, ChevronsRight, RefreshCw, Settings } from 'lucide-react';
+import {
+  ChevronsLeft,
+  ChevronsRight,
+  Compass,
+  Github,
+  RefreshCw,
+  Search,
+  Settings,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 
 import { cn } from '@/lib/utils';
@@ -16,16 +24,28 @@ import {
 interface SidebarProps {
   collapsed: boolean;
   onToggleCollapsed: () => void;
+  onOpenImport: () => void;
+  onOpenSettings: () => void;
+  onOpenPalette: () => void;
 }
 
-export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps): JSX.Element {
+export function Sidebar({
+  collapsed,
+  onToggleCollapsed,
+  onOpenImport,
+  onOpenSettings,
+  onOpenPalette,
+}: SidebarProps): JSX.Element {
   const items = useStackStore((s) => s.items);
   const filter = useStackStore((s) => s.filter);
   const setFilter = useStackStore((s) => s.setFilter);
   const rescan = useStackStore((s) => s.rescan);
+  const view = useStackStore((s) => s.view);
+  const setView = useStackStore((s) => s.setView);
 
   const counts = getCategoryCounts(items);
   const totalActive = items.filter((it) => it.status !== 'disabled').length;
+  const stackActive = view === 'stack';
 
   return (
     <motion.aside
@@ -57,7 +77,7 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps): JSX.Ele
 
         <NavItem
           collapsed={collapsed}
-          active={filter === 'all'}
+          active={stackActive && filter === 'all'}
           onClick={() => setFilter('all')}
           label="All"
           count={totalActive}
@@ -68,7 +88,7 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps): JSX.Ele
           <NavItem
             key={cat}
             collapsed={collapsed}
-            active={filter === cat}
+            active={stackActive && filter === cat}
             onClick={() => setFilter(cat)}
             label={CATEGORY_LABELS[cat]}
             count={counts[cat]}
@@ -76,13 +96,40 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps): JSX.Ele
           />
         ))}
 
+        {!collapsed && <SectionLabel className="mt-6">Browse</SectionLabel>}
+
+        <NavItem
+          collapsed={collapsed}
+          active={view === 'discover'}
+          onClick={() => setView('discover')}
+          label="Discover"
+          icon={<Compass className="h-4 w-4" strokeWidth={1.75} />}
+        />
+
         {!collapsed && <SectionLabel className="mt-6">Actions</SectionLabel>}
 
         <NavItem
           collapsed={collapsed}
           active={false}
+          onClick={onOpenPalette}
+          label="Command palette"
+          shortcut="⌘K"
+          icon={<Search className="h-4 w-4" strokeWidth={1.75} />}
+        />
+        <NavItem
+          collapsed={collapsed}
+          active={false}
+          onClick={onOpenImport}
+          label="Import from GitHub"
+          shortcut="⌘N"
+          icon={<Github className="h-4 w-4" strokeWidth={1.75} />}
+        />
+        <NavItem
+          collapsed={collapsed}
+          active={false}
           onClick={() => void rescan()}
           label="Rescan"
+          shortcut="⌘R"
           icon={<RefreshCw className="h-4 w-4" strokeWidth={1.75} />}
         />
       </nav>
@@ -91,10 +138,9 @@ export function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps): JSX.Ele
         <NavItem
           collapsed={collapsed}
           active={false}
-          onClick={() => {
-            /* Settings panel ships in Week 3. */
-          }}
+          onClick={onOpenSettings}
           label="Settings"
+          shortcut="⌘,"
           icon={<Settings className="h-4 w-4" strokeWidth={1.75} />}
         />
       </div>
@@ -127,15 +173,24 @@ interface NavItemProps {
   onClick: () => void;
   label: string;
   count?: number;
+  shortcut?: string;
   icon: React.ReactNode;
 }
 
-function NavItem({ collapsed, active, onClick, label, count, icon }: NavItemProps): JSX.Element {
+function NavItem({
+  collapsed,
+  active,
+  onClick,
+  label,
+  count,
+  shortcut,
+  icon,
+}: NavItemProps): JSX.Element {
   return (
     <button
       type="button"
       onClick={onClick}
-      title={collapsed ? label : undefined}
+      title={collapsed ? `${label}${shortcut ? ` (${shortcut})` : ''}` : undefined}
       aria-pressed={active}
       className={cn(
         'group flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm transition-colors duration-fast',
@@ -153,6 +208,9 @@ function NavItem({ collapsed, active, onClick, label, count, icon }: NavItemProp
           <span className="flex-1 text-left">{label}</span>
           {count !== undefined && (
             <span className="text-[10px] tabular-nums text-subtle">{count}</span>
+          )}
+          {shortcut && count === undefined && (
+            <span className="text-[10px] tabular-nums text-subtle">{shortcut}</span>
           )}
         </>
       )}

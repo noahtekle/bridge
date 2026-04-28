@@ -11,7 +11,7 @@ export default defineConfig({
     globals: false,
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
-    include: ['src/main/**/__tests__/**/*.test.ts'],
+    include: ['src/**/__tests__/**/*.test.ts'],
     pool: 'forks', // separate process per file so BRIDGE_CLAUDE_HOME env stays isolated
     isolate: true,
   },

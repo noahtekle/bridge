@@ -20,6 +20,8 @@
     "build": "pnpm --filter @bridge/desktop build",
     "build:mac": "pnpm --filter @bridge/desktop build:mac",
     "build:win": "pnpm --filter @bridge/desktop build:win",
+    "web:dev": "pnpm --filter @bridge/web dev",
+    "web:build": "pnpm --filter @bridge/web build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r --workspace-concurrency=1 --if-present test",
     "lint": "pnpm -r lint",

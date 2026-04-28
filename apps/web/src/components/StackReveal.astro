@@ -1,0 +1,79 @@
+---
+import CategoryIcon from './CategoryIcon.astro';
+
+/**
+ * Demo of the first-launch reveal screen the desktop app shows after its
+ * initial scan. Counts here are illustrative — what a typical power-user
+ * stack might look like — not claims about real installs.
+ */
+const REVEAL = [
+  { cat: 'mcp', label: 'MCPs', target: 8 },
+  { cat: 'skill', label: 'Skills', target: 12 },
+  { cat: 'plugin', label: 'Plugins', target: 4 },
+  { cat: 'agent', label: 'Agents', target: 2 },
+  { cat: 'command', label: 'Slash commands', target: 6 },
+  { cat: 'hook', label: 'Hooks', target: 3 },
+] as const;
+---
+
+<div
+  id="stack-reveal"
+  class="relative isolate overflow-hidden rounded-xl border border-border bg-surface shadow-2xl shadow-black/30"
+>
+  <!-- Subtle aurora -->
+  <div
+    aria-hidden="true"
+    class="absolute inset-0 -z-10"
+    style="background: radial-gradient(circle at 30% 30%, rgba(59,130,246,0.10), transparent 55%), radial-gradient(circle at 70% 70%, rgba(168,85,247,0.10), transparent 55%);"
+  >
+  </div>
+
+  <div class="px-6 py-5 sm:px-10 sm:py-8">
+    <div class="text-[10px] font-medium uppercase tracking-[0.3em] text-subtle">
+      Welcome to Bridge
+    </div>
+    <h2 class="mt-2 text-xl font-semibold tracking-tight text-text sm:text-2xl">
+      Here's what we found in your stack.
+    </h2>
+
+    <ul class="mt-6 space-y-3 sm:mt-8 sm:space-y-4">
+      {
+        REVEAL.map((row) => (
+          <li class="flex items-center gap-4 sm:gap-5">
+            <CategoryIcon category={row.cat} size={28} />
+            <span
+              class="counter w-[60px] text-2xl font-semibold tabular-nums text-text sm:w-[80px] sm:text-3xl"
+              style={`--num: 0`}
+              data-target={row.target}
+            />
+            <span class="text-sm text-muted sm:text-base">{row.label}</span>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="mt-6 text-xs text-subtle sm:mt-8">
+      Sample stack — your numbers depend on what you have installed.
+    </div>
+  </div>
+</div>
+
+<script>
+  // Trigger the count-up animation when the reveal panel scrolls into view,
+  // not on initial DOM ready — keeps the moment as the user's eye lands on it.
+  const panel = document.getElementById('stack-reveal');
+  if (panel) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-revealed');
+            observer.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.4 },
+    );
+    observer.observe(panel);
+  }
+</script>

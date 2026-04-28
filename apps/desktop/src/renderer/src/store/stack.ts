@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { StackCategory, StackItem } from '@bridge/core';
 
 export type CategoryFilter = 'all' | StackCategory;
+export type AppView = 'stack' | 'discover';
 
 export interface MutationFailure {
   /** Brief one-line message shown in the failure banner. */
@@ -17,12 +18,14 @@ interface StackStore {
   loading: boolean;
   error: string | null;
   scannedAt: number | null;
+  claudeCodeDetected: boolean;
 
   filter: CategoryFilter;
   search: string;
   selectedId: string | null;
   sidebarCollapsed: boolean;
   hasSeenReveal: boolean;
+  view: AppView;
 
   /** Set of item ids currently being mutated, so the UI can show pending state. */
   pendingIds: Set<string>;
@@ -38,6 +41,7 @@ interface StackStore {
   setSelected: (id: string | null) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   markRevealSeen: () => void;
+  setView: (view: AppView) => void;
 
   toggleItem: (item: StackItem, enabled: boolean) => Promise<void>;
   updateDescription: (item: StackItem, description: string) => Promise<void>;
@@ -71,12 +75,14 @@ export const useStackStore = create<StackStore>((set, get) => ({
   loading: true,
   error: null,
   scannedAt: null,
+  claudeCodeDetected: true,
 
   filter: 'all',
   search: '',
   selectedId: null,
   sidebarCollapsed: readBoolFlag(SIDEBAR_KEY),
   hasSeenReveal: readBoolFlag(REVEAL_KEY),
+  view: 'stack',
 
   pendingIds: new Set<string>(),
   failure: null,
@@ -86,7 +92,12 @@ export const useStackStore = create<StackStore>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const result = await window.bridge.listStack({ includeDisabled: true });
-      set({ items: result.items, scannedAt: result.scannedAt, loading: false });
+      set({
+        items: result.items,
+        scannedAt: result.scannedAt,
+        claudeCodeDetected: result.claudeCodeDetected,
+        loading: false,
+      });
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : 'Failed to read stack',
@@ -99,7 +110,12 @@ export const useStackStore = create<StackStore>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const result = await window.bridge.rescan();
-      set({ items: result.items, scannedAt: result.scannedAt, loading: false });
+      set({
+        items: result.items,
+        scannedAt: result.scannedAt,
+        claudeCodeDetected: result.claudeCodeDetected,
+        loading: false,
+      });
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : 'Rescan failed',
@@ -108,9 +124,12 @@ export const useStackStore = create<StackStore>((set, get) => ({
     }
   },
 
-  setFilter: (filter) => set({ filter }),
+  // Selecting a stack category implicitly switches the view back to the stack.
+  // Otherwise users on Discover clicking "MCPs" would be confused why nothing changes.
+  setFilter: (filter) => set({ filter, view: 'stack' }),
   setSearch: (search) => set({ search }),
   setSelected: (id) => set({ selectedId: id }),
+  setView: (view) => set({ view, selectedId: null }),
 
   setSidebarCollapsed: (collapsed) => {
     writeBoolFlag(SIDEBAR_KEY, collapsed);
@@ -195,6 +214,7 @@ export function bindStackUpdates(): () => void {
     useStackStore.setState({
       items: result.items,
       scannedAt: result.scannedAt,
+      claudeCodeDetected: result.claudeCodeDetected,
       loading: false,
       error: null,
     });
@@ -225,6 +245,7 @@ export function getCategoryCounts(items: StackItem[]): Record<StackCategory, num
     skill: 0,
     agent: 0,
     command: 0,
+    hook: 0,
   };
   for (const item of items) counts[item.category] += 1;
   return counts;

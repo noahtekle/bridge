@@ -6,6 +6,7 @@
  * is auditable end-to-end and so renderer/main can't drift.
  */
 
+import type { DiscoverEntry } from './discover';
 import type { StackCategory, StackItem } from './schema';
 
 export const IPC_CHANNELS = {
@@ -29,12 +30,12 @@ export const IPC_CHANNELS = {
   RESTORE_BACKUP: 'bridge:restore-backup',
 
   // Week 3 — GitHub import + settings.
-  IMPORT_FROM_GITHUB: 'bridge:import-from-github',
-  IMPORT_PROGRESS: 'bridge:import-progress',
+  PREVIEW_IMPORT: 'bridge:preview-import',
+  CONFIRM_IMPORT: 'bridge:confirm-import',
+  CANCEL_IMPORT: 'bridge:cancel-import',
   GET_SETTINGS: 'bridge:get-settings',
   UPDATE_SETTINGS: 'bridge:update-settings',
-  SET_GITHUB_TOKEN: 'bridge:set-github-token',
-  GET_GITHUB_TOKEN_STATUS: 'bridge:get-github-token-status',
+  GET_DISCOVER_LIST: 'bridge:get-discover-list',
 } as const;
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -80,6 +81,12 @@ export interface ListStackOptions {
 export interface ListStackResult {
   items: StackItem[];
   scannedAt: number;
+  /**
+   * False when neither `~/.claude/` nor `~/.claude.json` exists, indicating
+   * Claude Code probably isn't installed. The renderer shows a friendlier
+   * "couldn't find your install" screen in that case.
+   */
+  claudeCodeDetected: boolean;
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -114,6 +121,8 @@ export interface MutationResult {
 // ──────────────────────────────────────────────────────────────────────────
 
 export interface ImportPreview {
+  /** Token identifying the cloned tmp tree on the main side. Pass back to confirm/cancel. */
+  previewId: string;
   detectedCategory: StackCategory | 'ambiguous' | 'unknown';
   candidates: StackCategory[];
   name: string;
@@ -122,10 +131,30 @@ export interface ImportPreview {
   filesToWrite: { source: string; dest: string }[];
 }
 
-export interface ImportProgressEvent {
-  stage: 'cloning' | 'detecting' | 'writing' | 'done' | 'error';
-  message: string;
-  progress?: number;
+export interface PreviewImportRequest {
+  url: string;
+  /**
+   * Optional subdirectory inside the repo to detect + install against.
+   * See DiscoverEntry.subPath for the rationale.
+   */
+  subPath?: string;
+}
+
+export interface ConfirmImportRequest {
+  previewId: string;
+  /** What category the user chose. May differ from detected when the user overrides. */
+  category: StackCategory;
+  /** Name to install under (folder/key). Defaults to the detected name. */
+  name: string;
+}
+
+export interface ImportInstallResult {
+  ok: boolean;
+  installed: string[];
+  backupPath?: string;
+  error?: string;
+  /** When category === 'plugin' or otherwise can't auto-install, the CLI command to run. */
+  cliInstruction?: string;
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -137,6 +166,32 @@ export interface BridgeSettings {
   backupRetentionDays: number;
   backupRetentionCount: number;
   scanOnFocus: boolean;
+  hasSeenPrivacyModal: boolean;
+  /**
+   * Hook descriptions live here, not inside Claude Code's settings.json,
+   * because hooks have no native description schema — and we don't want to
+   * pollute the user's Claude config with Bridge-only metadata.
+   *
+   * Keyed by stable hook ID (hash of event + matcher + command).
+   */
+  hookDescriptions: Record<string, string>;
+  /**
+   * Hooks the user has toggled off via Bridge. The hook entry itself is
+   * removed from settings.json so Claude Code stops running it, but its
+   * full content is parked here so we can restore it on toggle-on without
+   * depending on backup-folder rotation.
+   */
+  disabledHooks: Record<string, DisabledHookEntry>;
+}
+
+export interface DisabledHookEntry {
+  eventType: string;
+  matcher: string | undefined;
+  command: string;
+  /** Optional `type` field from the hook entry — usually 'command'. */
+  type?: string;
+  /** Free-form passthrough so we don't lose unknown fields on round trip. */
+  passthrough?: Record<string, unknown>;
 }
 
 export const DEFAULT_SETTINGS: BridgeSettings = {
@@ -144,6 +199,9 @@ export const DEFAULT_SETTINGS: BridgeSettings = {
   backupRetentionDays: 30,
   backupRetentionCount: 50,
   scanOnFocus: true,
+  hasSeenPrivacyModal: false,
+  hookDescriptions: {},
+  disabledHooks: {},
 };
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -172,4 +230,14 @@ export interface BridgeApi {
   toggleItem: (request: ToggleItemRequest) => Promise<MutationResult>;
   updateItem: (request: UpdateItemRequest) => Promise<MutationResult>;
   deleteItem: (request: DeleteItemRequest) => Promise<MutationResult>;
+
+  // Week 3 — GitHub import + settings
+  previewImport: (request: PreviewImportRequest) => Promise<ImportPreview>;
+  confirmImport: (request: ConfirmImportRequest) => Promise<ImportInstallResult>;
+  cancelImport: (previewId: string) => Promise<void>;
+
+  getSettings: () => Promise<BridgeSettings>;
+  updateSettings: (partial: Partial<BridgeSettings>) => Promise<BridgeSettings>;
+
+  getDiscoverList: () => Promise<DiscoverEntry[]>;
 }

@@ -65,6 +65,7 @@ const GRADIENTS: Record<StackCategory, { from: string; to: string }> = {
   agent: { from: '#EC4899', to: '#9D174D' },
   plugin: { from: '#A855F7', to: '#6B21A8' },
   command: { from: '#06B6D4', to: '#0E7490' },
+  hook: { from: '#10B981', to: '#047857' },
 };
 
 const stroke = 'rgba(255,255,255,0.95)';
@@ -114,6 +115,17 @@ const GLYPHS: Record<StackCategory, JSX.Element> = {
       <path d="M19 16 h2" />
     </g>
   ),
+  // Hook glyph: a fork — a single trunk on the left splits into two trigger
+  // points on the right. Reads as "this event branches into these actions."
+  hook: (
+    <g stroke={stroke} strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" fill="none">
+      <circle cx="10" cy="16" r="1.6" fill={stroke} />
+      <path d="M11.5 16 h3.5 l3 -4 h2.5" />
+      <path d="M11.5 16 h3.5 l3 4 h2.5" />
+      <circle cx="22" cy="12" r="1.6" fill={stroke} />
+      <circle cx="22" cy="20" r="1.6" fill={stroke} />
+    </g>
+  ),
 };
 
 export const CATEGORY_LABELS: Record<StackCategory, string> = {
@@ -122,6 +134,7 @@ export const CATEGORY_LABELS: Record<StackCategory, string> = {
   skill: 'Skills',
   agent: 'Agents',
   command: 'Commands',
+  hook: 'Hooks',
 };
 
 export const CATEGORY_LABELS_SINGULAR: Record<StackCategory, string> = {
@@ -130,7 +143,16 @@ export const CATEGORY_LABELS_SINGULAR: Record<StackCategory, string> = {
   skill: 'Skill',
   agent: 'Agent',
   command: 'Command',
+  hook: 'Hook',
 };
 
-/** Display order for sidebar + filters. Matches the spec doc. */
-export const CATEGORIES_ORDER: StackCategory[] = ['mcp', 'plugin', 'skill', 'agent', 'command'];
+/** Display order for sidebar + filters. Hooks sit at the end since they're
+ *  the most "wired-in" category and benefit from being seen last. */
+export const CATEGORIES_ORDER: StackCategory[] = [
+  'mcp',
+  'plugin',
+  'skill',
+  'agent',
+  'command',
+  'hook',
+];

@@ -44,6 +44,13 @@ lerna-debug.log*
 .turbo/
 .parcel-cache/
 
+# Astro generated
+.astro/
+
+# Playwright local QA artifacts
+.playwright-mcp/
+/bridge-*.png
+
 # Brainstorming companion (transient)
 .superpowers/
 

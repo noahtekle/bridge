@@ -4,10 +4,16 @@ import {
   IPC_CHANNELS,
   type AppInfo,
   type BridgeApi,
+  type BridgeSettings,
+  type ConfirmImportRequest,
   type DeleteItemRequest,
+  type DiscoverEntry,
+  type ImportInstallResult,
+  type ImportPreview,
   type ListStackOptions,
   type ListStackResult,
   type MutationResult,
+  type PreviewImportRequest,
   type ThemeState,
   type ThemeSource,
   type ToggleItemRequest,
@@ -41,6 +47,20 @@ const bridgeApi: BridgeApi = {
     ipcRenderer.invoke(IPC_CHANNELS.UPDATE_ITEM, request),
   deleteItem: (request: DeleteItemRequest): Promise<MutationResult> =>
     ipcRenderer.invoke(IPC_CHANNELS.DELETE_ITEM, request),
+
+  previewImport: (request: PreviewImportRequest): Promise<ImportPreview> =>
+    ipcRenderer.invoke(IPC_CHANNELS.PREVIEW_IMPORT, request),
+  confirmImport: (request: ConfirmImportRequest): Promise<ImportInstallResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.CONFIRM_IMPORT, request),
+  cancelImport: (previewId: string): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.CANCEL_IMPORT, previewId),
+
+  getSettings: (): Promise<BridgeSettings> => ipcRenderer.invoke(IPC_CHANNELS.GET_SETTINGS),
+  updateSettings: (partial: Partial<BridgeSettings>): Promise<BridgeSettings> =>
+    ipcRenderer.invoke(IPC_CHANNELS.UPDATE_SETTINGS, partial),
+
+  getDiscoverList: (): Promise<DiscoverEntry[]> =>
+    ipcRenderer.invoke(IPC_CHANNELS.GET_DISCOVER_LIST),
 };
 
 if (process.contextIsolated) {
@@ -50,8 +70,6 @@ if (process.contextIsolated) {
     console.error('[bridge/preload] failed to expose API via contextBridge:', error);
   }
 } else {
-  // Defensive: if we ever boot without contextIsolation we want to fail loudly,
-  // not silently expose a richer surface.
   throw new Error(
     '[bridge/preload] contextIsolation is required. Refusing to expose API on window.',
   );
