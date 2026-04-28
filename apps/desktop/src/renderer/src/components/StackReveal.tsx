@@ -47,11 +47,18 @@ export function StackReveal({ counts, onContinue }: StackRevealProps): JSX.Eleme
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.32, ease: [0, 0, 0.2, 1] }}
+      transition={{ duration: 0.4, ease: [0, 0, 0.2, 1] }}
       className={cn(
         'absolute inset-0 z-50 flex flex-col items-center justify-center px-12',
-        'bg-bg [background:radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.10),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(168,85,247,0.10),transparent_55%)]',
+        'bg-bg',
       )}
+      style={{
+        backgroundImage:
+          'radial-gradient(circle at 30% 30%, rgba(59,130,246,0.10), transparent 55%), radial-gradient(circle at 70% 70%, rgba(168,85,247,0.10), transparent 55%)',
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Welcome to Bridge"
     >
       <motion.div
         initial={{ y: 8, opacity: 0 }}

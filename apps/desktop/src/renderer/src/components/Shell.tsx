@@ -140,10 +140,13 @@ export function Shell(): JSX.Element {
         onOpenPalette={() => setPaletteOpen(true)}
       />
 
-      <main className="flex h-full min-w-0 flex-1 flex-col">
+      <main
+        className="flex h-full min-w-0 flex-1 flex-col"
+        aria-hidden={showReveal ? 'true' : undefined}
+      >
         <Banners />
 
-        {view === 'discover' ? (
+        {showReveal ? null : view === 'discover' ? (
           <DiscoverView />
         ) : (
           <>
