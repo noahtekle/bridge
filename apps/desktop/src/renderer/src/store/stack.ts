@@ -3,6 +3,15 @@ import type { StackCategory, StackItem } from '@bridge/core';
 
 export type CategoryFilter = 'all' | StackCategory;
 
+export interface MutationFailure {
+  /** Brief one-line message shown in the failure banner. */
+  message: string;
+  /** Backup path the user can roll back from, when available. */
+  backupPath?: string;
+  /** Item id the failure relates to, for navigation. */
+  itemId?: string;
+}
+
 interface StackStore {
   items: StackItem[];
   loading: boolean;
@@ -15,6 +24,13 @@ interface StackStore {
   sidebarCollapsed: boolean;
   hasSeenReveal: boolean;
 
+  /** Set of item ids currently being mutated, so the UI can show pending state. */
+  pendingIds: Set<string>;
+  /** Latest failure to show in the global failure banner. Cleared by the user. */
+  failure: MutationFailure | null;
+  /** True when at least one mutation needs Claude Code restarted to take effect. */
+  restartPending: boolean;
+
   load: () => Promise<void>;
   rescan: () => Promise<void>;
   setFilter: (filter: CategoryFilter) => void;
@@ -22,6 +38,13 @@ interface StackStore {
   setSelected: (id: string | null) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   markRevealSeen: () => void;
+
+  toggleItem: (item: StackItem, enabled: boolean) => Promise<void>;
+  updateDescription: (item: StackItem, description: string) => Promise<void>;
+  deleteItem: (item: StackItem) => Promise<void>;
+
+  dismissFailure: () => void;
+  acknowledgeRestart: () => void;
 }
 
 const SIDEBAR_KEY = 'bridge:sidebarCollapsed';
@@ -43,7 +66,7 @@ const writeBoolFlag = (key: string, value: boolean): void => {
   }
 };
 
-export const useStackStore = create<StackStore>((set) => ({
+export const useStackStore = create<StackStore>((set, get) => ({
   items: [],
   loading: true,
   error: null,
@@ -54,6 +77,10 @@ export const useStackStore = create<StackStore>((set) => ({
   selectedId: null,
   sidebarCollapsed: readBoolFlag(SIDEBAR_KEY),
   hasSeenReveal: readBoolFlag(REVEAL_KEY),
+
+  pendingIds: new Set<string>(),
+  failure: null,
+  restartPending: false,
 
   load: async () => {
     set({ loading: true, error: null });
@@ -94,7 +121,73 @@ export const useStackStore = create<StackStore>((set) => ({
     writeBoolFlag(REVEAL_KEY, true);
     set({ hasSeenReveal: true });
   },
+
+  toggleItem: async (item, enabled) => {
+    await runMutation(set, item, () => window.bridge.toggleItem({ id: item.id, enabled }));
+  },
+
+  updateDescription: async (item, description) => {
+    await runMutation(set, item, () => window.bridge.updateItem({ id: item.id, description }));
+  },
+
+  deleteItem: async (item) => {
+    await runMutation(set, item, () => window.bridge.deleteItem({ id: item.id }));
+    // Drop selection if the deleted item was open in the detail panel.
+    if (get().selectedId === item.id) set({ selectedId: null });
+  },
+
+  dismissFailure: () => set({ failure: null }),
+  acknowledgeRestart: () => set({ restartPending: false }),
 }));
+
+type StackSet = (
+  partial:
+    | Partial<StackStore>
+    | ((state: StackStore) => Partial<StackStore>),
+) => void;
+
+async function runMutation(
+  set: StackSet,
+  item: StackItem,
+  fn: () => Promise<{ ok: boolean; error?: string; backupPath?: string; needsRestart: boolean }>,
+): Promise<void> {
+  // Mark pending. Use a fresh Set so React re-renders consumers.
+  set((state) => {
+    const pending = new Set(state.pendingIds);
+    pending.add(item.id);
+    return { pendingIds: pending };
+  });
+
+  try {
+    const result = await fn();
+    if (!result.ok) {
+      set({
+        failure: {
+          message: result.error ?? 'Could not save the change',
+          backupPath: result.backupPath,
+          itemId: item.id,
+        },
+      });
+      return;
+    }
+    if (result.needsRestart) {
+      set({ restartPending: true });
+    }
+  } catch (err) {
+    set({
+      failure: {
+        message: err instanceof Error ? err.message : 'Mutation failed',
+        itemId: item.id,
+      },
+    });
+  } finally {
+    set((state) => {
+      const pending = new Set(state.pendingIds);
+      pending.delete(item.id);
+      return { pendingIds: pending };
+    });
+  }
+}
 
 /** Subscribe the store to STACK_UPDATED pushes from main. Call once on boot. */
 export function bindStackUpdates(): () => void {

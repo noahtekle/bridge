@@ -4,10 +4,14 @@ import {
   IPC_CHANNELS,
   type AppInfo,
   type BridgeApi,
+  type DeleteItemRequest,
   type ListStackOptions,
   type ListStackResult,
+  type MutationResult,
   type ThemeState,
   type ThemeSource,
+  type ToggleItemRequest,
+  type UpdateItemRequest,
 } from '@bridge/core';
 
 const bridgeApi: BridgeApi = {
@@ -30,6 +34,13 @@ const bridgeApi: BridgeApi = {
     ipcRenderer.on(IPC_CHANNELS.STACK_UPDATED, wrapped);
     return () => ipcRenderer.removeListener(IPC_CHANNELS.STACK_UPDATED, wrapped);
   },
+
+  toggleItem: (request: ToggleItemRequest): Promise<MutationResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.TOGGLE_ITEM, request),
+  updateItem: (request: UpdateItemRequest): Promise<MutationResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.UPDATE_ITEM, request),
+  deleteItem: (request: DeleteItemRequest): Promise<MutationResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.DELETE_ITEM, request),
 };
 
 if (process.contextIsolated) {

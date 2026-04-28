@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Week 2 — Writes
+
+- `ConfigWriter` class with serialized mutation queue, backup-first, atomic writes
+- Per-category mutations:
+  - **Plugin** toggle → `settings.json` `enabledPlugins[name] = boolean`
+  - **MCP** toggle → remove from `~/.claude.json` `mcpServers` (off) / restore from most recent backup (on)
+  - **Skill / Agent / Slash command** toggle → move file/folder to/from `.disabled/` sibling
+  - **Delete** for all 5 categories (plugin → routed to Claude Code; everything else → backed up + removed)
+  - **Edit description** for file-based items (writes back to YAML frontmatter)
+- Backups land in `~/.claude/backups/<ISO>/` mirroring the original path
+- Backup rotation runs on app start: keep last 50 OR last 30 days, whichever is more permissive
+- Atomic JSON writes (`.tmp.<rand>` + fsync + rename) so partial writes can't corrupt the original
+- IPC contract extended: `TOGGLE_ITEM`, `UPDATE_ITEM`, `DELETE_ITEM`
+- Renderer:
+  - Card toggle is now clickable, with spinner during pending mutation and lock state for plugin-bundled skills
+  - Detail panel: inline description editor (skill/agent/command), delete with inline confirm
+  - Restart-needed banner with Got-it dismiss
+  - Failure banner with backup path shown, X dismiss
+- Plugin-bundled skills are toggle-locked with a tooltip explaining they're managed by the parent plugin
+- Items in `error` state (settings/installed mismatch) cannot be toggled directly — fix the underlying issue first
+
 ### Week 1 — Read pipeline + UI shell
 
 - ConfigReader scans all 5 sources end-to-end:
