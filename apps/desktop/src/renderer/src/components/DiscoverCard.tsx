@@ -16,7 +16,10 @@ export function DiscoverCard({ entry }: DiscoverCardProps): JSX.Element {
 
   const handleInstall = (e: React.MouseEvent): void => {
     e.stopPropagation();
-    void openWithUrl(entry.repoUrl, entry.subPath);
+    void openWithUrl(entry.repoUrl, {
+      subPath: entry.subPath,
+      categoryHint: entry.category,
+    });
   };
 
   const handleOpenRepo = (e: React.MouseEvent): void => {

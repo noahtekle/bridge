@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Discover refit — every entry verified
+
+- 100% of repo URLs and subPaths verified against the GitHub API at curation time
+- Cut speculation: removed `gstack-dev/gstack`, `obsidian-skills/obsidian`, `anthropics/claude-agents-curated`, `design-skills/critique`, `community-claude-hooks/stop-chime`, plus the original Anthropic-marketplace links that pointed at the wrong repo
+- Cut MCP-server-only repos for V1 — Bridge can't auto-install MCP servers from a clone (they need npm + JSON config patching beyond what the import flow does today). Better to be honest than promise broken installs.
+- 16 verified entries: 4 single-repo plugins (Superpowers via `obra/superpowers`, claude-mem, gstack via `garrytan/gstack`, Supermemory) + 12 official Anthropic skills via `anthropics/skills` with verified subPaths (skill-creator, mcp-builder, pdf, docx, pptx, xlsx, brand-guidelines, canvas-design, doc-coauthoring, internal-comms, webapp-testing, claude-api)
+- Discover entries now pass `categoryHint` through the import store, pre-selecting the override pill so curated categories aren't lost when detection comes back ambiguous
+- `detect` now recognizes `.claude-plugin/plugin.json` (Anthropic's actual plugin manifest location) in addition to root-level `plugin.json`
+
+### Discover: subPath support for monorepo entries
+
+- New `subPath?: string` field on `DiscoverEntry` and `PreviewImportRequest`
+- `resolveSubPath` helper does normalization, traversal rejection (rejects `..` and absolute paths pointing outside the clone), and existence + directory-type checks
+- IPC handler resolves the subPath once at preview time, stores the "logical root" with the active import; `confirmImport` reads the same logical root so install code stays untouched
+- Accepts both POSIX and Windows separators (`a/b` and `a\b` resolve to the same target)
+- 10 new tests covering happy paths, traversal rejection, missing subdir, file-not-dir, and detect-against-resolved-subpath
+
 ### Discover tab
 
 - New top-level view (`view: 'stack' | 'discover'`) — sidebar gets a "Browse → Discover" entry

@@ -27,8 +27,16 @@ interface ImportStore {
   error: string | null;
 
   openModal: () => void;
-  /** Open with a URL (and optional subPath) pre-filled and immediately fetch the preview. */
-  openModalWithUrl: (url: string, subPath?: string) => Promise<void>;
+  /**
+   * Open with a URL pre-filled and immediately fetch the preview.
+   * `subPath` scopes detection to a monorepo subdirectory.
+   * `categoryHint` pre-selects the override pill so Discover entries don't
+   * make the user re-pick a category that's already been curated.
+   */
+  openModalWithUrl: (
+    url: string,
+    options?: { subPath?: string; categoryHint?: StackCategory },
+  ) => Promise<void>;
   closeModal: () => Promise<void>;
   setUrl: (url: string) => void;
   setOverrideCategory: (category: StackCategory | null) => void;
@@ -59,15 +67,15 @@ export const useImportStore = create<ImportStore>((set, get) => ({
       error: null,
     }),
 
-  openModalWithUrl: async (url, subPath) => {
+  openModalWithUrl: async (url, options) => {
     set({
       open: true,
       stage: 'idle',
       url,
-      subPath: subPath ?? null,
+      subPath: options?.subPath ?? null,
       preview: null,
       error: null,
-      overrideCategory: null,
+      overrideCategory: options?.categoryHint ?? null,
       editableName: '',
     });
     // Immediately kick off the preview — Discover users have already
@@ -109,11 +117,14 @@ export const useImportStore = create<ImportStore>((set, get) => ({
     try {
       const subPath = get().subPath ?? undefined;
       const preview = await window.bridge.previewImport({ url, subPath });
+      // Preserve the categoryHint set by openModalWithUrl. Manual-paste users
+      // get null here (the previous behavior).
+      const existingHint = get().overrideCategory;
       set({
         preview,
         stage: 'preview',
         editableName: preview.name,
-        overrideCategory: null,
+        overrideCategory: existingHint,
       });
     } catch (err) {
       set({

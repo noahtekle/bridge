@@ -36,15 +36,22 @@ export async function detect(repoPath: string): Promise<DetectionResult> {
   }
 
   // ── Plugin at root ────────────────────────────────────────────────────
-  const pluginJson = join(repoPath, 'plugin.json');
-  if (await isFile(pluginJson)) {
-    candidates.add('plugin');
-    try {
-      const data = JSON.parse(await readFile(pluginJson, 'utf8')) as Record<string, unknown>;
-      if (typeof data.name === 'string') primaryName = data.name;
-      if (typeof data.description === 'string') description = data.description;
-    } catch {
-      /* leave defaults */
+  // Anthropic-format plugins live at `.claude-plugin/plugin.json`; some
+  // older / community plugins use root-level `plugin.json`. Check both.
+  for (const candidate of [
+    join(repoPath, '.claude-plugin', 'plugin.json'),
+    join(repoPath, 'plugin.json'),
+  ]) {
+    if (await isFile(candidate)) {
+      candidates.add('plugin');
+      try {
+        const data = JSON.parse(await readFile(candidate, 'utf8')) as Record<string, unknown>;
+        if (typeof data.name === 'string') primaryName = data.name;
+        if (typeof data.description === 'string') description = data.description;
+      } catch {
+        /* leave defaults */
+      }
+      break;
     }
   }
 
