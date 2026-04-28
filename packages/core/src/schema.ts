@@ -5,7 +5,24 @@
  * lives on disk — funnels into this shape before reaching the UI.
  */
 
-export type StackCategory = 'mcp' | 'plugin' | 'skill' | 'agent' | 'command';
+export type StackCategory = 'mcp' | 'plugin' | 'skill' | 'agent' | 'command' | 'hook';
+
+/**
+ * Claude Code hook event types. Subset that's stable enough to first-class —
+ * unknown event types coming from a future Claude Code version still scan
+ * (the reader treats anything in the `hooks` map as a hook), they just
+ * surface with a generic icon.
+ */
+export type HookEventType =
+  | 'PreToolUse'
+  | 'PostToolUse'
+  | 'Notification'
+  | 'Stop'
+  | 'SubagentStop'
+  | 'UserPromptSubmit'
+  | 'PreCompact'
+  | 'SessionStart'
+  | 'SessionEnd';
 
 export type StackSource = 'user' | 'plugin' | 'github' | 'official';
 
@@ -42,4 +59,5 @@ export const CATEGORY_ACCENT: Record<StackCategory, { from: string; to: string; 
   agent: { from: '#EC4899', to: '#9D174D', pill: '#831843' },
   plugin: { from: '#A855F7', to: '#6B21A8', pill: '#581C87' },
   command: { from: '#06B6D4', to: '#0E7490', pill: '#155E75' },
+  hook: { from: '#10B981', to: '#047857', pill: '#064E3B' },
 };

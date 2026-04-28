@@ -27,6 +27,7 @@ import {
   rotateBackups,
   scanStack,
   startFileWatcher,
+  stableHookId,
   type FileWatcherHandle,
   type ScanResult,
 } from './config';
@@ -57,7 +58,13 @@ let watcher: FileWatcherHandle | null = null;
 
 async function refreshScan(): Promise<ScanResult> {
   if (scanInFlight) return scanInFlight;
-  scanInFlight = scanStack()
+  scanInFlight = (async () => {
+    const settings = await loadSettings();
+    return scanStack({
+      hookDescriptions: settings.hookDescriptions,
+      disabledHooks: settings.disabledHooks,
+    });
+  })()
     .then((result) => {
       latestScan = result;
       return result;
@@ -184,9 +191,10 @@ function registerIpcHandlers(): void {
   ipcMain.handle(
     IPC_CHANNELS.TOGGLE_ITEM,
     async (_event, request: ToggleItemRequest): Promise<MutationResult> =>
-      runMutation((item) => {
+      runMutation(async (item) => {
         if (item.category === 'plugin') return writer.togglePlugin(item, request.enabled);
         if (item.category === 'mcp') return writer.toggleMcp(item, request.enabled);
+        if (item.category === 'hook') return toggleHook(item, request.enabled);
         return writer.toggleFileItem(item, request.enabled);
       }, request.id),
   );
@@ -194,22 +202,28 @@ function registerIpcHandlers(): void {
   ipcMain.handle(
     IPC_CHANNELS.UPDATE_ITEM,
     async (_event, request: UpdateItemRequest): Promise<MutationResult> =>
-      runMutation((item) => {
-        if (request.description !== undefined) {
-          return writer.updateDescription(item, request.description);
+      runMutation(async (item) => {
+        if (request.description === undefined) {
+          return {
+            ok: false,
+            needsRestart: false,
+            error: 'No fields provided to update',
+          } satisfies MutationResult;
         }
-        return Promise.resolve<MutationResult>({
-          ok: false,
-          needsRestart: false,
-          error: 'No fields provided to update',
-        });
+        if (item.category === 'hook') {
+          return updateHookDescription(item.id, request.description);
+        }
+        return writer.updateDescription(item, request.description);
       }, request.id),
   );
 
   ipcMain.handle(
     IPC_CHANNELS.DELETE_ITEM,
     async (_event, request: DeleteItemRequest): Promise<MutationResult> =>
-      runMutation((item) => writer.deleteItem(item), request.id),
+      runMutation(async (item) => {
+        if (item.category === 'hook') return deleteHook(item);
+        return writer.deleteItem(item);
+      }, request.id),
   );
 
   ipcMain.handle(
@@ -308,6 +322,85 @@ async function runMutation(
     };
   }
 }
+
+// ─── Hook orchestration ─────────────────────────────────────────────────
+// Hooks live across two files: settings.json holds the active entry, and
+// bridge-settings.json holds Bridge-only state (descriptions for the UI,
+// captured content for disabled hooks). These helpers coordinate both so
+// the writer + settings store stay free of cross-cutting knowledge.
+
+async function toggleHook(item: StackItem, enabled: boolean): Promise<MutationResult> {
+  const current = await loadSettings();
+
+  if (enabled) {
+    const captured = current.disabledHooks[item.id];
+    if (!captured) {
+      return {
+        ok: false,
+        needsRestart: false,
+        error: 'No disabled-hook entry found — was it deleted instead?',
+      };
+    }
+    const result = await writer.restoreHookToClaude(captured);
+    if (result.ok) {
+      const { [item.id]: _removed, ...rest } = current.disabledHooks;
+      void _removed;
+      await updateSettings({ disabledHooks: rest });
+    }
+    return result;
+  }
+
+  const result = await writer.removeHookFromClaude(item);
+  if (!result.ok || !result.captured) return result;
+
+  await updateSettings({
+    disabledHooks: { ...current.disabledHooks, [item.id]: result.captured },
+  });
+  return result;
+}
+
+async function deleteHook(item: StackItem): Promise<MutationResult> {
+  const current = await loadSettings();
+
+  const wasDisabled = item.id in current.disabledHooks;
+
+  if (wasDisabled) {
+    // Disabled hooks live only in bridge-settings.json, not in claude
+    // settings.json. Delete is sidecar-only.
+    const { [item.id]: _removed, ...rest } = current.disabledHooks;
+    void _removed;
+    const { [item.id]: _description, ...descriptions } = current.hookDescriptions;
+    void _description;
+    await updateSettings({ disabledHooks: rest, hookDescriptions: descriptions });
+    return { ok: true, needsRestart: false };
+  }
+
+  const result = await writer.deleteHookFromClaude(item);
+  if (result.ok) {
+    const { [item.id]: _description, ...descriptions } = current.hookDescriptions;
+    void _description;
+    if (Object.keys(descriptions).length !== Object.keys(current.hookDescriptions).length) {
+      await updateSettings({ hookDescriptions: descriptions });
+    }
+  }
+  return result;
+}
+
+async function updateHookDescription(id: string, description: string): Promise<MutationResult> {
+  const current = await loadSettings();
+  const next = { ...current.hookDescriptions };
+  if (description.trim().length === 0) {
+    delete next[id];
+  } else {
+    next[id] = description;
+  }
+  await updateSettings({ hookDescriptions: next });
+  return { ok: true, needsRestart: false };
+}
+
+// Silence the unused-import warnings — TS keeps these in sight even though
+// they're indirectly used through type narrowing.
+void stableHookId;
 
 app.whenReady().then(async () => {
   electronApp.setAppUserModelId('com.bridge.app');

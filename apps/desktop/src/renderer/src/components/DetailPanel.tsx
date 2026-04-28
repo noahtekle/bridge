@@ -65,7 +65,9 @@ function Panel({ item, onClose }: { item: StackItem; onClose: () => void }): JSX
       <div className="flex-1 space-y-5 overflow-y-auto p-5">
         <DescriptionSection item={item} />
 
-        <Section title="Source">
+        {item.category === 'hook' && <HookTriggerSection item={item} />}
+
+        <Section title={item.category === 'hook' ? 'Origin' : 'Source'}>
           <DetailRow label="Type" value={labelFor(item)} />
           <DetailRow label="Source" value={item.source} mono />
           {item.sourceRef && <DetailRow label="Reference" value={item.sourceRef} mono />}
@@ -134,7 +136,10 @@ function DescriptionSection({ item }: { item: StackItem }): JSX.Element {
   }, [item.id, item.description]);
 
   const canEdit =
-    item.category === 'skill' || item.category === 'agent' || item.category === 'command';
+    item.category === 'skill' ||
+    item.category === 'agent' ||
+    item.category === 'command' ||
+    item.category === 'hook';
 
   if (editing) {
     return (
@@ -200,6 +205,35 @@ function DescriptionSection({ item }: { item: StackItem }): JSX.Element {
         <p className="text-sm italic text-subtle">
           {canEdit ? 'No description. Click Edit to add one.' : 'No description.'}
         </p>
+      )}
+    </Section>
+  );
+}
+
+function HookTriggerSection({ item }: { item: StackItem }): JSX.Element {
+  const eventType = typeof item.metadata.eventType === 'string' ? item.metadata.eventType : null;
+  const matcher = typeof item.metadata.matcher === 'string' ? item.metadata.matcher : null;
+  const command = typeof item.metadata.command === 'string' ? item.metadata.command : null;
+  const type = typeof item.metadata.type === 'string' ? item.metadata.type : 'command';
+
+  return (
+    <Section title="Trigger">
+      {eventType && (
+        <DetailRow
+          label="Event"
+          value={
+            <span className="inline-flex items-center rounded-full bg-[#064E3B] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#6ee7b7]">
+              {eventType}
+            </span>
+          }
+        />
+      )}
+      <DetailRow label="Matcher" value={matcher ? matcher : <span className="text-subtle">— (any)</span>} mono={Boolean(matcher)} />
+      <DetailRow label="Run" value={type} mono />
+      {command && (
+        <div className="mt-1 rounded-md border border-border bg-bg p-2 font-mono text-[11px] leading-relaxed text-muted">
+          <pre className="whitespace-pre-wrap break-all">{command}</pre>
+        </div>
       )}
     </Section>
   );
@@ -313,5 +347,7 @@ function labelFor(item: StackItem): string {
       return 'Agent';
     case 'command':
       return 'Slash command';
+    case 'hook':
+      return 'Hook';
   }
 }

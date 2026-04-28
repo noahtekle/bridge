@@ -137,6 +137,11 @@ export function computeInstallPlan(
       return [{ source: repoPath, dest: '~/.claude.json[mcpServers]' }];
     case 'plugin':
       return []; // Routed to Claude Code's installer; we don't write files.
+    case 'hook':
+      // Hook import-from-GitHub isn't part of V1 — repos rarely package
+      // raw hook configs as the primary deliverable. Returning empty here
+      // keeps the type system happy without surfacing a stub UI.
+      return [];
   }
 }
 

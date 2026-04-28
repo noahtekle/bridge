@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Hooks — sixth category
+
+- Hooks live in `~/.claude/settings.json` under the `hooks` key, organized by event type (`PreToolUse`, `PostToolUse`, `Notification`, `Stop`, `SubagentStop`, `UserPromptSubmit`, `PreCompact`, `SessionStart`, `SessionEnd`, plus any future event Claude Code adds — unknown event types still scan)
+- Each individual hook command becomes one StackItem so users toggle, edit, and delete them independently
+- Stable IDs are sha256(`event` + `matcher` + `command`), so cards keep identity across rescans
+- Card view: emerald gradient icon (a fork/branch glyph), event type as the pill tag, command preview as the description fallback when no user description is set
+- Detail panel adds a "Trigger" section with event type pill, matcher, run type, and the full command in a mono block
+- Sixth nav entry in the sidebar with the same count badge, search behavior, and reveal-screen treatment
+- Toggle: removes the entry from `settings.json` and parks the captured content in `<userData>/bridge-settings.json` `disabledHooks` so re-enabling restores the entry exactly (passthrough fields preserved). Same backup-first guarantee as MCP toggles.
+- Edit description: stored as a sidecar map in `bridge-settings.json` (Claude Code's hook schema has no description field, and we don't want to pollute the user's config with Bridge metadata)
+- Delete: cleans up both Claude's settings.json and Bridge's sidecar
+- 13 new tests (7 scan-hooks, 6 writer hook paths) — 48 total passing
+
 ### Week 3 — Import + polish
 
 - **GitHub import**: paste URL → shallow clone to tmp → filename signal detection → preview screen with override → install with backup-first

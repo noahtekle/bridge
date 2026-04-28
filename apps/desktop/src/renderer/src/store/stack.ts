@@ -238,6 +238,7 @@ export function getCategoryCounts(items: StackItem[]): Record<StackCategory, num
     skill: 0,
     agent: 0,
     command: 0,
+    hook: 0,
   };
   for (const item of items) counts[item.category] += 1;
   return counts;

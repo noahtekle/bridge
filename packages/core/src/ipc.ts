@@ -160,6 +160,31 @@ export interface BridgeSettings {
   backupRetentionCount: number;
   scanOnFocus: boolean;
   hasSeenPrivacyModal: boolean;
+  /**
+   * Hook descriptions live here, not inside Claude Code's settings.json,
+   * because hooks have no native description schema — and we don't want to
+   * pollute the user's Claude config with Bridge-only metadata.
+   *
+   * Keyed by stable hook ID (hash of event + matcher + command).
+   */
+  hookDescriptions: Record<string, string>;
+  /**
+   * Hooks the user has toggled off via Bridge. The hook entry itself is
+   * removed from settings.json so Claude Code stops running it, but its
+   * full content is parked here so we can restore it on toggle-on without
+   * depending on backup-folder rotation.
+   */
+  disabledHooks: Record<string, DisabledHookEntry>;
+}
+
+export interface DisabledHookEntry {
+  eventType: string;
+  matcher: string | undefined;
+  command: string;
+  /** Optional `type` field from the hook entry — usually 'command'. */
+  type?: string;
+  /** Free-form passthrough so we don't lose unknown fields on round trip. */
+  passthrough?: Record<string, unknown>;
 }
 
 export const DEFAULT_SETTINGS: BridgeSettings = {
@@ -168,6 +193,8 @@ export const DEFAULT_SETTINGS: BridgeSettings = {
   backupRetentionCount: 50,
   scanOnFocus: true,
   hasSeenPrivacyModal: false,
+  hookDescriptions: {},
+  disabledHooks: {},
 };
 
 // ──────────────────────────────────────────────────────────────────────────

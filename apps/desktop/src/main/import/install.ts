@@ -45,6 +45,12 @@ export async function install(
       return installCommands(repoPath);
     case 'mcp':
       return installMcp(repoPath);
+    case 'hook':
+      return {
+        ok: false,
+        installed: [],
+        error: 'Hook import-from-GitHub is not in V1 — add hooks via Claude Code or paste them in settings.json directly.',
+      };
   }
 }
 

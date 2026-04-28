@@ -4,12 +4,13 @@ import { basename, dirname, join, sep } from 'node:path';
 import matter from 'gray-matter';
 import { readFile } from 'node:fs/promises';
 
-import type { StackItem, MutationResult } from '@bridge/core';
+import type { DisabledHookEntry, StackItem, MutationResult } from '@bridge/core';
 
 import { atomicWriteJson, atomicWriteText } from './atomic';
 import { backupForMutation } from './backup';
 import { CLAUDE_PATHS, DISABLED_DIR } from './paths';
 import { isRecord, readJsonSafe } from './read-json';
+import { stableHookId } from './scan-hooks';
 
 /**
  * All mutating operations funnel through this class. Two reasons:
@@ -32,6 +33,24 @@ export class ConfigWriter {
 
   toggleFileItem(item: StackItem, enabled: boolean): Promise<MutationResult> {
     return this.enqueue(async () => this.runToggleFileItem(item, enabled));
+  }
+
+  /**
+   * Hook toggles work via two coordinated edits — settings.json gets the
+   * entry removed/restored, and Bridge's own state file remembers the
+   * disabled content. Caller (main/index.ts) persists the sidecar so this
+   * class stays free of <userData> coupling.
+   */
+  removeHookFromClaude(item: StackItem): Promise<MutationResult & { captured?: DisabledHookEntry }> {
+    return this.enqueue(async () => this.runRemoveHook(item));
+  }
+
+  restoreHookToClaude(entry: DisabledHookEntry): Promise<MutationResult> {
+    return this.enqueue(async () => this.runAddHook(entry));
+  }
+
+  deleteHookFromClaude(item: StackItem): Promise<MutationResult> {
+    return this.enqueue(async () => this.runRemoveHook(item).then(({ ok, backupPath, error }) => ({ ok, backupPath, needsRestart: false, error })));
   }
 
   deleteItem(item: StackItem): Promise<MutationResult> {
@@ -143,6 +162,14 @@ export class ConfigWriter {
   }
 
   private async runUpdateDescription(item: StackItem, description: string): Promise<MutationResult> {
+    if (item.category === 'hook') {
+      // Hooks have no native description field; the IPC handler in
+      // main/index.ts writes the description into bridge-settings.json
+      // sidecar, then triggers a rescan. This branch shouldn't normally be
+      // reached — the routing layer catches it first — but we keep it as a
+      // defensive fallback so callers get a clear error.
+      return error('Hook descriptions are stored in Bridge state, not settings.json');
+    }
     if (item.category === 'mcp' || item.category === 'plugin') {
       return error('Inline description editing for MCPs/Plugins lands in Week 3.');
     }
@@ -159,6 +186,126 @@ export class ConfigWriter {
     const next = matter.stringify(parsed.content, parsed.data);
     await atomicWriteText(targetFile, next);
     return { ok: true, backupPath, needsRestart: false };
+  }
+
+  // ──────────────────────────────────────────────────────────────────────
+  // Hooks
+  // ──────────────────────────────────────────────────────────────────────
+
+  private async runRemoveHook(
+    item: StackItem,
+  ): Promise<MutationResult & { captured?: DisabledHookEntry }> {
+    if (item.category !== 'hook') return error('Not a hook');
+
+    const meta = item.metadata as {
+      eventType?: string;
+      matcher?: string;
+      command?: string;
+      type?: string;
+    };
+    if (!meta.eventType || !meta.command) return error('Hook is missing event type or command');
+
+    const backupPath = await backupForMutation(CLAUDE_PATHS.settingsJson);
+    const settings = (await readJsonSafe(CLAUDE_PATHS.settingsJson)) ?? {};
+    if (!isRecord(settings)) return error('settings.json is malformed');
+
+    const hooks = isRecord(settings.hooks) ? { ...settings.hooks } : {};
+    const eventList = Array.isArray(hooks[meta.eventType]) ? [...(hooks[meta.eventType] as unknown[])] : [];
+
+    let captured: DisabledHookEntry | undefined;
+    const updated: unknown[] = [];
+
+    for (const group of eventList) {
+      if (!isRecord(group)) {
+        updated.push(group);
+        continue;
+      }
+      const matcher = typeof group.matcher === 'string' ? group.matcher : undefined;
+      const list = Array.isArray(group.hooks) ? [...group.hooks] : [];
+      const filtered: unknown[] = [];
+      for (const entry of list) {
+        if (
+          isRecord(entry) &&
+          typeof entry.command === 'string' &&
+          stableHookId(meta.eventType, matcher, entry.command) === item.id
+        ) {
+          captured = {
+            eventType: meta.eventType,
+            matcher,
+            command: entry.command,
+            type: typeof entry.type === 'string' ? entry.type : 'command',
+            passthrough: extractPassthrough(entry),
+          };
+          continue; // drop this entry from the list
+        }
+        filtered.push(entry);
+      }
+      if (filtered.length > 0) {
+        updated.push({ ...group, hooks: filtered });
+      }
+      // If a group becomes empty after the removal, drop it entirely.
+    }
+
+    if (!captured) {
+      return error('Hook not found in settings.json (already removed?)');
+    }
+
+    if (updated.length > 0) {
+      hooks[meta.eventType] = updated;
+    } else {
+      delete hooks[meta.eventType];
+    }
+
+    // Drop the `hooks` parent if it's now empty — keeps settings.json tidy
+    // and matches what users would write by hand.
+    if (Object.keys(hooks).length === 0) {
+      delete settings.hooks;
+    } else {
+      settings.hooks = hooks;
+    }
+
+    await atomicWriteJson(CLAUDE_PATHS.settingsJson, settings);
+    return { ok: true, backupPath, needsRestart: true, captured };
+  }
+
+  private async runAddHook(entry: DisabledHookEntry): Promise<MutationResult> {
+    const backupPath = await backupForMutation(CLAUDE_PATHS.settingsJson);
+    const settings = (await readJsonSafe(CLAUDE_PATHS.settingsJson)) ?? {};
+    if (!isRecord(settings)) return error('settings.json is malformed');
+
+    const hooks = isRecord(settings.hooks) ? { ...settings.hooks } : {};
+    const eventList = Array.isArray(hooks[entry.eventType]) ? [...(hooks[entry.eventType] as unknown[])] : [];
+
+    // Find an existing group with the same matcher to merge into; otherwise create one.
+    const newHookEntry: Record<string, unknown> = {
+      type: entry.type ?? 'command',
+      command: entry.command,
+      ...(entry.passthrough ?? {}),
+    };
+
+    let merged = false;
+    const updated = eventList.map((group) => {
+      if (merged || !isRecord(group)) return group;
+      const matcher = typeof group.matcher === 'string' ? group.matcher : undefined;
+      if (matcher === entry.matcher) {
+        const list = Array.isArray(group.hooks) ? [...group.hooks, newHookEntry] : [newHookEntry];
+        merged = true;
+        return { ...group, hooks: list };
+      }
+      return group;
+    });
+
+    if (!merged) {
+      const newGroup: Record<string, unknown> = { hooks: [newHookEntry] };
+      if (entry.matcher !== undefined) newGroup.matcher = entry.matcher;
+      updated.push(newGroup);
+    }
+
+    hooks[entry.eventType] = updated;
+    settings.hooks = hooks;
+
+    await atomicWriteJson(CLAUDE_PATHS.settingsJson, settings);
+    return { ok: true, backupPath, needsRestart: true };
   }
 
   // ──────────────────────────────────────────────────────────────────────
@@ -183,6 +330,24 @@ function error(message: string): MutationResult {
 function isInDisabled(filePath: string): boolean {
   // Walk up the path and look for a `.disabled` segment.
   return filePath.split(sep).includes(DISABLED_DIR);
+}
+
+/**
+ * Preserve unknown fields from a hook entry so we can round-trip on
+ * disable/re-enable without losing user customization (e.g. timeout, etc.
+ * — anything Claude Code may add later).
+ */
+function extractPassthrough(entry: Record<string, unknown>): Record<string, unknown> | undefined {
+  const known = new Set(['type', 'command']);
+  const extras: Record<string, unknown> = {};
+  let any = false;
+  for (const [k, v] of Object.entries(entry)) {
+    if (!known.has(k)) {
+      extras[k] = v;
+      any = true;
+    }
+  }
+  return any ? extras : undefined;
 }
 
 /**

@@ -6,6 +6,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { CLAUDE_PATHS } from '../paths';
 import { ConfigWriter } from '../writer';
+import { stableHookId } from '../scan-hooks';
 
 import type { StackItem } from '@bridge/core';
 
@@ -269,6 +270,144 @@ describe('updateDescription', () => {
 });
 
 // ──────────────────────────────────────────────────────────────────────────
+// Hooks
+// ──────────────────────────────────────────────────────────────────────────
+
+describe('removeHookFromClaude', () => {
+  it('removes a hook entry and captures it for restore', async () => {
+    await writeJson(CLAUDE_PATHS.settingsJson, {
+      hooks: {
+        PreToolUse: [
+          { matcher: 'Bash', hooks: [{ type: 'command', command: 'log it' }] },
+        ],
+      },
+    });
+
+    const item = hookItem('PreToolUse', 'Bash', 'log it');
+    const result = await writer.removeHookFromClaude(item);
+
+    expect(result.ok).toBe(true);
+    expect(result.captured).toEqual({
+      eventType: 'PreToolUse',
+      matcher: 'Bash',
+      command: 'log it',
+      type: 'command',
+      passthrough: undefined,
+    });
+    const updated = await readJson(CLAUDE_PATHS.settingsJson);
+    expect((updated as { hooks?: Record<string, unknown> }).hooks).toBeUndefined();
+  });
+
+  it("preserves sibling hooks when removing one of many", async () => {
+    await writeJson(CLAUDE_PATHS.settingsJson, {
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Bash',
+            hooks: [
+              { type: 'command', command: 'log a' },
+              { type: 'command', command: 'log b' },
+            ],
+          },
+        ],
+      },
+    });
+
+    const itemA = hookItem('PreToolUse', 'Bash', 'log a');
+    await writer.removeHookFromClaude(itemA);
+
+    const remaining = (await readJson(CLAUDE_PATHS.settingsJson)) as {
+      hooks: { PreToolUse: Array<{ hooks: Array<{ command: string }> }> };
+    };
+    expect(remaining.hooks.PreToolUse[0]!.hooks).toHaveLength(1);
+    expect(remaining.hooks.PreToolUse[0]!.hooks[0]!.command).toBe('log b');
+  });
+
+  it('preserves passthrough fields on the captured entry', async () => {
+    await writeJson(CLAUDE_PATHS.settingsJson, {
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Edit',
+            hooks: [
+              {
+                type: 'command',
+                command: 'do thing',
+                timeout: 5000,
+                customMeta: { tag: 'foo' },
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const item = hookItem('PreToolUse', 'Edit', 'do thing');
+    const result = await writer.removeHookFromClaude(item);
+
+    expect(result.captured?.passthrough).toEqual({
+      timeout: 5000,
+      customMeta: { tag: 'foo' },
+    });
+  });
+
+  it('fails cleanly when the hook is no longer in settings.json', async () => {
+    await writeJson(CLAUDE_PATHS.settingsJson, { hooks: {} });
+
+    const item = hookItem('PreToolUse', 'Bash', 'gone');
+    const result = await writer.removeHookFromClaude(item);
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain('not found');
+  });
+});
+
+describe('restoreHookToClaude', () => {
+  it('adds a hook entry to a fresh event type', async () => {
+    await writeJson(CLAUDE_PATHS.settingsJson, {});
+
+    const result = await writer.restoreHookToClaude({
+      eventType: 'Stop',
+      matcher: undefined,
+      command: 'chime',
+      type: 'command',
+    });
+
+    expect(result.ok).toBe(true);
+    const updated = (await readJson(CLAUDE_PATHS.settingsJson)) as {
+      hooks: { Stop: Array<{ matcher?: string; hooks: Array<{ command: string }> }> };
+    };
+    expect(updated.hooks.Stop).toHaveLength(1);
+    expect(updated.hooks.Stop[0]!.matcher).toBeUndefined();
+    expect(updated.hooks.Stop[0]!.hooks[0]!.command).toBe('chime');
+  });
+
+  it('merges into an existing matcher group instead of duplicating', async () => {
+    await writeJson(CLAUDE_PATHS.settingsJson, {
+      hooks: {
+        PreToolUse: [
+          { matcher: 'Bash', hooks: [{ type: 'command', command: 'log a' }] },
+        ],
+      },
+    });
+
+    await writer.restoreHookToClaude({
+      eventType: 'PreToolUse',
+      matcher: 'Bash',
+      command: 'log b',
+      type: 'command',
+    });
+
+    const updated = (await readJson(CLAUDE_PATHS.settingsJson)) as {
+      hooks: { PreToolUse: Array<{ matcher?: string; hooks: Array<{ command: string }> }> };
+    };
+    expect(updated.hooks.PreToolUse).toHaveLength(1); // single group, not two
+    expect(updated.hooks.PreToolUse[0]!.hooks).toHaveLength(2);
+    expect(updated.hooks.PreToolUse[0]!.hooks.map((h) => h.command)).toEqual(['log a', 'log b']);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────
 // Concurrency / queue
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -349,6 +488,24 @@ function mcpItem(name: string): StackItem {
     needsRestart: false,
     configPath: { file: CLAUDE_PATHS.claudeJson, jsonPath: `mcpServers.${name}` },
     metadata: {},
+  };
+}
+
+function hookItem(
+  eventType: string,
+  matcher: string | undefined,
+  command: string,
+): StackItem {
+  return {
+    id: stableHookId(eventType, matcher, command),
+    category: 'hook',
+    name: matcher ? `${matcher} · ${eventType}` : eventType,
+    description: '',
+    source: 'user',
+    status: 'active',
+    needsRestart: false,
+    configPath: { file: CLAUDE_PATHS.settingsJson, jsonPath: `hooks.${eventType}` },
+    metadata: { eventType, matcher, command, type: 'command' },
   };
 }
 
