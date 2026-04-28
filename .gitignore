@@ -44,6 +44,9 @@ lerna-debug.log*
 .turbo/
 .parcel-cache/
 
+# Astro generated
+.astro/
+
 # Brainstorming companion (transient)
 .superpowers/
 
