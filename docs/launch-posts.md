@@ -7,7 +7,7 @@ metrics, no exaggerated user counts, no testimonials.
 **Pre-flight checklist before posting:**
 
 - [ ] `v0.1.0` tag pushed and Releases page populated with `.dmg` + `.exe`
-- [ ] `bridge-app.pages.dev` is live and renders correctly
+- [ ] `bridge-stack.pages.dev` is live and renders correctly
 - [ ] README screenshot loads from the raw GitHub URL
 - [ ] Tested both downloads on a clean machine (Mac + Windows) once
 
@@ -21,7 +21,7 @@ metrics, no exaggerated user counts, no testimonials.
 >
 > See, manage, and install MCPs, Skills, Agents, Plugins, slash commands, and hooks from one app. Local-first, open source, MIT.
 >
-> Mac + Windows: bridge-app.pages.dev
+> Mac + Windows: bridge-stack.pages.dev
 
 Attach: dashboard screenshot.
 
@@ -66,7 +66,7 @@ Bridge is a desktop app that:
 **v0.1 ships unsigned** for cost reasons — first launch shows a security warning, README has bypass instructions for Mac (right-click → Open) and Windows (SmartScreen → Run anyway). Signing comes when the project earns it.
 
 Mac + Windows: [github.com/noahtekle/bridge/releases](https://github.com/noahtekle/bridge/releases)
-Site: [bridge-app.pages.dev](https://bridge-app.pages.dev)
+Site: [bridge-stack.pages.dev](https://bridge-stack.pages.dev)
 Source: [github.com/noahtekle/bridge](https://github.com/noahtekle/bridge)
 
 Feedback welcome. Bug reports and Discover-list PRs especially welcome.
@@ -90,7 +90,7 @@ Feedback welcome. Bug reports and Discover-list PRs especially welcome.
 > • Local-first — never phones home
 >
 > Mac + Windows downloads: github.com/noahtekle/bridge/releases
-> Site: bridge-app.pages.dev
+> Site: bridge-stack.pages.dev
 >
 > v0.1 ships unsigned (cost reasons), README walks through the bypass on each platform. Open source, MIT.
 >
@@ -129,7 +129,7 @@ Honest about what's not in v0.1:
 - **Cloud sync, marketplace, performance metrics** — all on the roadmap, none in v0.1.
 
 Mac + Windows: [github.com/noahtekle/bridge/releases](https://github.com/noahtekle/bridge/releases)
-Site: [bridge-app.pages.dev](https://bridge-app.pages.dev)
+Site: [bridge-stack.pages.dev](https://bridge-stack.pages.dev)
 Source: [github.com/noahtekle/bridge](https://github.com/noahtekle/bridge)
 
 Happy to answer architecture questions and especially want to hear from people whose actual Claude Code workflow this either solves or doesn't.

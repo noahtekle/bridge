@@ -1,7 +1,7 @@
-# `@bridge/web` — bridge-app.pages.dev
+# `@bridge/web` — bridge-stack.pages.dev
 
 The Bridge marketing site. Static Astro + Tailwind, hosted on Cloudflare Pages
-free tier at `https://bridge-app.pages.dev`. Same design tokens as the desktop
+free tier at `https://bridge-stack.pages.dev`. Same design tokens as the desktop
 app — same Inter + JetBrains Mono, same zinc palette, same category gradients —
 so the site and the app feel like one product.
 
@@ -25,14 +25,14 @@ the IntersectionObserver that triggers the stack-reveal counter animation.
 
 ## Deploy — Cloudflare Pages
 
-Free tier, static. v0.1 ships on the free `bridge-app.pages.dev` subdomain;
+Free tier, static. v0.1 ships on the free `bridge-stack.pages.dev` subdomain;
 custom domain is a v0.2 problem.
 
 **One-time setup:**
 
 1. Sign in at https://dash.cloudflare.com → Workers & Pages → Create → Pages
 2. Connect to this GitHub repo (`noahtekle/bridge`)
-3. Project name: `bridge-app` (this becomes the `bridge-app.pages.dev` subdomain)
+3. Project name: `bridge-stack` (this becomes the `bridge-stack.pages.dev` subdomain)
 4. Build configuration:
    - **Production branch**: `main`
    - **Build command**: `pnpm --filter @bridge/web build`
@@ -44,14 +44,14 @@ custom domain is a v0.2 problem.
 5. Save and Deploy. First deploy takes ~2 min.
 
 Subsequent pushes to `main` auto-deploy. Pushes to other branches (e.g.
-`week-4`) get preview URLs at `<branch>.bridge-app.pages.dev` — handy when
+`week-4`) get preview URLs at `<branch>.bridge-stack.pages.dev` — handy when
 iterating on the page without merging.
 
 **Adding a custom domain later (v0.2):**
 
 Settings → Custom domains → "Set up a custom domain" → enter the domain →
 Cloudflare walks you through the DNS records. If the domain is already on
-Cloudflare it's instant; otherwise add a CNAME `@` → `bridge-app.pages.dev`.
+Cloudflare it's instant; otherwise add a CNAME `@` → `bridge-stack.pages.dev`.
 
 ## What's NOT on this site (and isn't going on it)
 

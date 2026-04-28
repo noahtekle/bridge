@@ -8,7 +8,7 @@ A visual dashboard for your MCPs, Skills, Agents, Plugins, slash commands, and h
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Release: v0.1](https://img.shields.io/github/v/release/noahtekle/bridge?label=Release&color=22C55E)](https://github.com/noahtekle/bridge/releases)
-[![Site: bridge-app.pages.dev](https://img.shields.io/badge/Site-bridge--app.pages.dev-3B82F6.svg)](https://bridge-app.pages.dev)
+[![Site: bridge-stack.pages.dev](https://img.shields.io/badge/Site-bridge--stack.pages.dev-3B82F6.svg)](https://bridge-stack.pages.dev)
 
 </div>
 
@@ -133,7 +133,7 @@ Deferred from v0.1, ordered by likely landing:
 ## Architecture
 
 - **Stack:** Electron 32 + Vite + electron-vite + electron-builder, React 18 + TypeScript, Tailwind + shadcn-style components, Lucide, Framer Motion, Zustand
-- **Repo layout:** pnpm workspaces — `apps/desktop` (Electron app), `apps/web` (marketing site at `bridge-app.pages.dev`), `packages/core` (shared types + IPC contract), `packages/ui` (design tokens)
+- **Repo layout:** pnpm workspaces — `apps/desktop` (Electron app), `apps/web` (marketing site at `bridge-stack.pages.dev`), `packages/core` (shared types + IPC contract), `packages/ui` (design tokens)
 - **Security from commit 1:** `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`. Renderer ↔ main only via the typed IPC contract at `packages/core/src/ipc.ts`. Filesystem access lives in main; renderer never touches disk.
 - **Tests:** 58 vitest tests covering ConfigWriter (toggle/delete/edit per category, queue serialization), backup snapshot + rotation, hook scanner + writer, GitHub-import detection, monorepo subPath traversal safety. Real `~/.claude/` never touched — tests run against `BRIDGE_CLAUDE_HOME` tmp dir.
 
