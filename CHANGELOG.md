@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Discover tab
+
+- New top-level view (`view: 'stack' | 'discover'`) — sidebar gets a "Browse → Discover" entry
+- Curated list lives at `apps/desktop/src/main/discover/curated.json`, bundled via Vite into the main process
+- 20 seed entries covering all 6 categories — leads with the user's actual stack (Superpowers, Firecrawl, claude-mem, gstack, Supermemory, Obsidian) plus Anthropic-official and community plugins, MCPs, agents, slash commands, and a hook example
+- Each entry: `id`, `name`, `category`, `repoUrl`, `description`, `whyRecommended`, `maintainer`, optional `tags`
+- `DiscoverCard` reuses the existing GitHub import flow — clicking "Install with Bridge" pre-fills the URL and auto-runs the preview, so the user goes straight to the override-and-confirm screen
+- Filter chips per category, search across name/description/why/maintainer, External-link to view the repo on GitHub
+- Adding an entry is a 5-line PR — see `apps/desktop/src/main/discover/README.md`
+- Cmd-K palette gains "Browse Discover" and "Show your stack" entries for view switching
+- IPC: new `GET_DISCOVER_LIST` channel + `BridgeApi.getDiscoverList`
+
 ### Hooks — sixth category
 
 - Hooks live in `~/.claude/settings.json` under the `hooks` key, organized by event type (`PreToolUse`, `PostToolUse`, `Notification`, `Stop`, `SubagentStop`, `UserPromptSubmit`, `PreCompact`, `SessionStart`, `SessionEnd`, plus any future event Claude Code adds — unknown event types still scan)

@@ -1,0 +1,207 @@
+{
+  "$schema": "./curated.schema.json",
+  "version": 1,
+  "_note": "Curated by hand. To add an entry, edit this file and open a PR. Order matters — top entries surface first.",
+  "entries": [
+    {
+      "id": "superpowers",
+      "name": "Superpowers",
+      "category": "plugin",
+      "repoUrl": "https://github.com/anthropics/claude-plugins-official",
+      "description": "Brainstorming, planning, debugging, code-review, and skill-creation skills bundled into one official plugin.",
+      "whyRecommended": "The plugin most Claude Code power users install first — covers thinking, building, and shipping in one place.",
+      "maintainer": "anthropics",
+      "tags": ["official", "essentials"]
+    },
+    {
+      "id": "firecrawl",
+      "name": "Firecrawl",
+      "category": "mcp",
+      "repoUrl": "https://github.com/mendableai/firecrawl-mcp-server",
+      "description": "Search, scrape, and crawl any web page through the Firecrawl API — full markdown extraction, structured data, and screenshots.",
+      "whyRecommended": "Best-in-class web access MCP. Drops in cleanly and handles JS-heavy pages other scrapers can't touch.",
+      "maintainer": "mendableai",
+      "tags": ["web", "research"]
+    },
+    {
+      "id": "claude-mem",
+      "name": "claude-mem",
+      "category": "plugin",
+      "repoUrl": "https://github.com/thedotmack/claude-mem",
+      "description": "Persistent memory plugin — Claude remembers conversations, decisions, and project context across sessions.",
+      "whyRecommended": "Solves the cold-start problem on long-running projects. Lightweight enough to leave on always.",
+      "maintainer": "thedotmack",
+      "tags": ["memory", "context"]
+    },
+    {
+      "id": "gstack",
+      "name": "gstack",
+      "category": "plugin",
+      "repoUrl": "https://github.com/gstack-dev/gstack",
+      "description": "Workflow plugin: /browse, /qa, /ship, /investigate, /design-review, /retro, /codex, /careful, /freeze, and more.",
+      "whyRecommended": "A full PM/eng workflow toolkit packaged as one plugin. Use one or two skills, or the whole stack.",
+      "maintainer": "gstack-dev",
+      "tags": ["workflow", "essentials"]
+    },
+    {
+      "id": "claude-supermemory",
+      "name": "Supermemory",
+      "category": "plugin",
+      "repoUrl": "https://github.com/supermemoryai/claude-supermemory",
+      "description": "Index your codebase or notes into Supermemory and search them from inside Claude Code.",
+      "whyRecommended": "Cross-session memory backed by a real vector store — alternative to claude-mem when you want a hosted backend.",
+      "maintainer": "supermemoryai",
+      "tags": ["memory", "search"]
+    },
+    {
+      "id": "obsidian",
+      "name": "Obsidian",
+      "category": "plugin",
+      "repoUrl": "https://github.com/obsidian-skills/obsidian",
+      "description": "Read and edit your Obsidian vault from Claude Code — wikilinks, frontmatter, callouts, JSON Canvas.",
+      "whyRecommended": "Built specifically for Obsidian's flavored markdown. Worth installing the moment you have a vault.",
+      "maintainer": "obsidian-skills",
+      "tags": ["notes", "writing"]
+    },
+    {
+      "id": "frontend-design",
+      "name": "Frontend Design",
+      "category": "plugin",
+      "repoUrl": "https://github.com/anthropics/claude-plugins-official",
+      "description": "Generates production-grade React/Tailwind/shadcn components with high design quality, not generic AI slop.",
+      "whyRecommended": "When you want UI that looks like a designer touched it, not a scaffold. Pairs well with Superpowers.",
+      "maintainer": "anthropics",
+      "tags": ["official", "ui"]
+    },
+    {
+      "id": "agent-sdk-dev",
+      "name": "Agent SDK Dev",
+      "category": "plugin",
+      "repoUrl": "https://github.com/anthropics/claude-plugins-official",
+      "description": "Helper plugin for building applications on the Claude Agent SDK — scaffolds, verifies, and tests SDK apps.",
+      "whyRecommended": "Required if you're building agents on top of Claude. Skip if you're not.",
+      "maintainer": "anthropics",
+      "tags": ["official", "developer"]
+    },
+    {
+      "id": "github-mcp",
+      "name": "GitHub MCP",
+      "category": "mcp",
+      "repoUrl": "https://github.com/github/github-mcp-server",
+      "description": "Official GitHub MCP server — read issues, PRs, files, and repo metadata directly from Claude Code.",
+      "whyRecommended": "Maintained by GitHub themselves. Authenticated via PAT or GitHub App, scoped permissions.",
+      "maintainer": "github",
+      "tags": ["github", "official"]
+    },
+    {
+      "id": "filesystem-mcp",
+      "name": "Filesystem MCP",
+      "category": "mcp",
+      "repoUrl": "https://github.com/modelcontextprotocol/servers",
+      "description": "Reference MCP server for reading/writing files in a sandboxed directory. Anthropic's canonical example.",
+      "whyRecommended": "Reference implementation for the spec. Tiny, easy to audit, useful when you want filesystem access scoped to one project.",
+      "maintainer": "modelcontextprotocol",
+      "tags": ["official", "reference"]
+    },
+    {
+      "id": "fetch-mcp",
+      "name": "Fetch MCP",
+      "category": "mcp",
+      "repoUrl": "https://github.com/modelcontextprotocol/servers",
+      "description": "Lightweight HTTP fetch as an MCP — when Firecrawl is overkill but you still need one URL pulled.",
+      "whyRecommended": "Tiny, dependency-free, no API keys. The minimum-viable web access MCP.",
+      "maintainer": "modelcontextprotocol",
+      "tags": ["official", "web"]
+    },
+    {
+      "id": "puppeteer-mcp",
+      "name": "Puppeteer MCP",
+      "category": "mcp",
+      "repoUrl": "https://github.com/modelcontextprotocol/servers",
+      "description": "Drive a real Chromium instance from Claude Code — clicks, screenshots, form fills, full DOM access.",
+      "whyRecommended": "When you need actual browser behavior, not just markdown. Heavier than Fetch but unmatched for QA + scraping interactive sites.",
+      "maintainer": "modelcontextprotocol",
+      "tags": ["browser", "qa"]
+    },
+    {
+      "id": "postgres-mcp",
+      "name": "Postgres MCP",
+      "category": "mcp",
+      "repoUrl": "https://github.com/modelcontextprotocol/servers",
+      "description": "Read-only Postgres access — Claude can query your database with your auth, can't write or DDL by default.",
+      "whyRecommended": "Safe-by-default schema and read access. Pair with a separate read-write tool only when you mean it.",
+      "maintainer": "modelcontextprotocol",
+      "tags": ["data", "database"]
+    },
+    {
+      "id": "sqlite-mcp",
+      "name": "SQLite MCP",
+      "category": "mcp",
+      "repoUrl": "https://github.com/modelcontextprotocol/servers",
+      "description": "Local SQLite access for prototyping. Drop in a .db file and Claude can introspect, query, and write.",
+      "whyRecommended": "The fastest way to give Claude a structured store for a one-off project. No server, no auth.",
+      "maintainer": "modelcontextprotocol",
+      "tags": ["data", "local"]
+    },
+    {
+      "id": "anthropic-skills",
+      "name": "Anthropic Skills",
+      "category": "plugin",
+      "repoUrl": "https://github.com/anthropics/skills",
+      "description": "Anthropic's official skill bundle: brand-guidelines, pdf, pptx, xlsx, docx, mcp-builder, skill-creator, web-artifacts-builder.",
+      "whyRecommended": "Document I/O, theming, and skill scaffolding from the source. Pair with Superpowers for full coverage.",
+      "maintainer": "anthropics",
+      "tags": ["official", "documents"]
+    },
+    {
+      "id": "code-security-reviewer",
+      "name": "Code Security Reviewer",
+      "category": "agent",
+      "repoUrl": "https://github.com/anthropics/claude-agents-curated",
+      "description": "Subagent that reviews recently changed code for both quality issues and security vulnerabilities.",
+      "whyRecommended": "Catches injection patterns, auth flaws, and unsafe deps before you ship. Trigger automatically post-commit.",
+      "maintainer": "anthropics",
+      "tags": ["security", "review"]
+    },
+    {
+      "id": "design-critique",
+      "name": "Design Critique",
+      "category": "skill",
+      "repoUrl": "https://github.com/design-skills/critique",
+      "description": "Designer's-eye review of mockups, screenshots, and live pages — hierarchy, spacing, contrast, accessibility.",
+      "whyRecommended": "Catches AI-slop UI patterns and the spacing/alignment gaps that ship-ready features still have.",
+      "maintainer": "design-skills",
+      "tags": ["design", "ui"]
+    },
+    {
+      "id": "ship-command",
+      "name": "/ship",
+      "category": "command",
+      "repoUrl": "https://github.com/gstack-dev/gstack",
+      "description": "Slash command that runs tests, bumps VERSION, updates CHANGELOG, commits, pushes, and opens a PR — in one go.",
+      "whyRecommended": "Compresses the boring 8-step ship sequence into one verb. Hard to live without after a week.",
+      "maintainer": "gstack-dev",
+      "tags": ["workflow", "release"]
+    },
+    {
+      "id": "review-command",
+      "name": "/review",
+      "category": "command",
+      "repoUrl": "https://github.com/gstack-dev/gstack",
+      "description": "Pre-merge PR review against the base branch — flags SQL injection, conditional side effects, LLM trust boundary issues.",
+      "whyRecommended": "Calibrated for the bugs that actually slip through reviews, not the lint-level stuff.",
+      "maintainer": "gstack-dev",
+      "tags": ["review", "workflow"]
+    },
+    {
+      "id": "stop-chime-hook",
+      "name": "Stop Chime",
+      "category": "hook",
+      "repoUrl": "https://github.com/community-claude-hooks/stop-chime",
+      "description": "Plays a sound when Claude finishes its turn. Tiny example showing how to wire a Stop hook.",
+      "whyRecommended": "Lets you walk away during long tasks. Also a great template for your first hook.",
+      "maintainer": "community-claude-hooks",
+      "tags": ["hooks", "example"]
+    }
+  ]
+}

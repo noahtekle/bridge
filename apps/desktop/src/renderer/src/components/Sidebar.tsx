@@ -1,4 +1,12 @@
-import { ChevronsLeft, ChevronsRight, Github, RefreshCw, Search, Settings } from 'lucide-react';
+import {
+  ChevronsLeft,
+  ChevronsRight,
+  Compass,
+  Github,
+  RefreshCw,
+  Search,
+  Settings,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 
 import { cn } from '@/lib/utils';
@@ -32,9 +40,12 @@ export function Sidebar({
   const filter = useStackStore((s) => s.filter);
   const setFilter = useStackStore((s) => s.setFilter);
   const rescan = useStackStore((s) => s.rescan);
+  const view = useStackStore((s) => s.view);
+  const setView = useStackStore((s) => s.setView);
 
   const counts = getCategoryCounts(items);
   const totalActive = items.filter((it) => it.status !== 'disabled').length;
+  const stackActive = view === 'stack';
 
   return (
     <motion.aside
@@ -66,7 +77,7 @@ export function Sidebar({
 
         <NavItem
           collapsed={collapsed}
-          active={filter === 'all'}
+          active={stackActive && filter === 'all'}
           onClick={() => setFilter('all')}
           label="All"
           count={totalActive}
@@ -77,13 +88,23 @@ export function Sidebar({
           <NavItem
             key={cat}
             collapsed={collapsed}
-            active={filter === cat}
+            active={stackActive && filter === cat}
             onClick={() => setFilter(cat)}
             label={CATEGORY_LABELS[cat]}
             count={counts[cat]}
             icon={<CategoryIcon category={cat} size={18} />}
           />
         ))}
+
+        {!collapsed && <SectionLabel className="mt-6">Browse</SectionLabel>}
+
+        <NavItem
+          collapsed={collapsed}
+          active={view === 'discover'}
+          onClick={() => setView('discover')}
+          label="Discover"
+          icon={<Compass className="h-4 w-4" strokeWidth={1.75} />}
+        />
 
         {!collapsed && <SectionLabel className="mt-6">Actions</SectionLabel>}
 

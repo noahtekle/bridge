@@ -447,7 +447,7 @@ async function writeJson(path: string, value: unknown): Promise<void> {
   await writeFile(path, JSON.stringify(value, null, 2), 'utf8');
 }
 
-async function readJson(path: string): Promise<{ enabledPlugins: Record<string, boolean>; mcpServers: Record<string, unknown> }> {
+async function readJson(path: string): Promise<any> {
   const raw = await readFile(path, 'utf8');
   return JSON.parse(raw);
 }

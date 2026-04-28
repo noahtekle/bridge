@@ -7,6 +7,7 @@ import {
   type BridgeSettings,
   type ConfirmImportRequest,
   type DeleteItemRequest,
+  type DiscoverEntry,
   type ImportInstallResult,
   type ImportPreview,
   type ListStackOptions,
@@ -57,6 +58,9 @@ const bridgeApi: BridgeApi = {
   getSettings: (): Promise<BridgeSettings> => ipcRenderer.invoke(IPC_CHANNELS.GET_SETTINGS),
   updateSettings: (partial: Partial<BridgeSettings>): Promise<BridgeSettings> =>
     ipcRenderer.invoke(IPC_CHANNELS.UPDATE_SETTINGS, partial),
+
+  getDiscoverList: (): Promise<DiscoverEntry[]> =>
+    ipcRenderer.invoke(IPC_CHANNELS.GET_DISCOVER_LIST),
 };
 
 if (process.contextIsolated) {

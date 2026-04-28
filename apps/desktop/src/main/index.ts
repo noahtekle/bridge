@@ -37,6 +37,7 @@ import {
   install as installImport,
   type CloneResult,
 } from './import';
+import { loadCurated } from './discover';
 import { loadSettings, updateSettings } from './settings';
 
 const writer = new ConfigWriter();
@@ -295,6 +296,8 @@ function registerIpcHandlers(): void {
     async (_event, partial: Partial<BridgeSettings>): Promise<BridgeSettings> =>
       updateSettings(partial),
   );
+
+  ipcMain.handle(IPC_CHANNELS.GET_DISCOVER_LIST, () => loadCurated());
 }
 
 async function runMutation(

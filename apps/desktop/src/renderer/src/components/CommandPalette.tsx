@@ -2,6 +2,7 @@ import { Command } from 'cmdk';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Boxes,
+  Compass,
   Github,
   Settings as SettingsIcon,
   RefreshCw,
@@ -78,6 +79,8 @@ function Body({
   const rescan = useStackStore((s) => s.rescan);
   const toggleItem = useStackStore((s) => s.toggleItem);
   const deleteItem = useStackStore((s) => s.deleteItem);
+  const setView = useStackStore((s) => s.setView);
+  const setFilter = useStackStore((s) => s.setFilter);
 
   const sortedItems = useMemo(() => {
     // Active items first, then disabled, then errored.
@@ -135,6 +138,16 @@ function Body({
                 label="Import from GitHub"
                 shortcut="N"
                 onSelect={() => closeAndRun(onOpenImport)}
+              />
+              <PaletteAction
+                icon={<Compass className="h-3.5 w-3.5" strokeWidth={1.75} />}
+                label="Browse Discover"
+                onSelect={() => closeAndRun(() => setView('discover'))}
+              />
+              <PaletteAction
+                icon={<Boxes className="h-3.5 w-3.5" strokeWidth={1.75} />}
+                label="Show your stack"
+                onSelect={() => closeAndRun(() => setFilter('all'))}
               />
               <PaletteAction
                 icon={<RefreshCw className="h-3.5 w-3.5" strokeWidth={1.75} />}

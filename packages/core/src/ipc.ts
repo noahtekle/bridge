@@ -6,6 +6,7 @@
  * is auditable end-to-end and so renderer/main can't drift.
  */
 
+import type { DiscoverEntry } from './discover';
 import type { StackCategory, StackItem } from './schema';
 
 export const IPC_CHANNELS = {
@@ -34,6 +35,7 @@ export const IPC_CHANNELS = {
   CANCEL_IMPORT: 'bridge:cancel-import',
   GET_SETTINGS: 'bridge:get-settings',
   UPDATE_SETTINGS: 'bridge:update-settings',
+  GET_DISCOVER_LIST: 'bridge:get-discover-list',
 } as const;
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -231,4 +233,6 @@ export interface BridgeApi {
 
   getSettings: () => Promise<BridgeSettings>;
   updateSettings: (partial: Partial<BridgeSettings>) => Promise<BridgeSettings>;
+
+  getDiscoverList: () => Promise<DiscoverEntry[]>;
 }

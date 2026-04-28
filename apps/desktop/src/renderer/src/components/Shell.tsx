@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 
 import { Banners } from './Banners';
 import { CommandPalette } from './CommandPalette';
+import { DiscoverView } from './DiscoverView';
 import { ImportModal } from './ImportModal';
 import { PrivacyModal } from './PrivacyModal';
 import { SettingsPanel } from './SettingsPanel';
@@ -37,6 +38,7 @@ export function Shell(): JSX.Element {
   const scannedAt = useStackStore((s) => s.scannedAt);
   const claudeCodeDetected = useStackStore((s) => s.claudeCodeDetected);
   const rescan = useStackStore((s) => s.rescan);
+  const view = useStackStore((s) => s.view);
 
   const openImport = useImportStore((s) => s.openModal);
 
@@ -139,40 +141,46 @@ export function Shell(): JSX.Element {
       />
 
       <main className="flex h-full min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between gap-4 border-b border-border-subtle px-6 py-3">
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-lg font-semibold tracking-tight text-text">
-              {filter === 'all' ? 'Your stack' : CATEGORY_LABELS[filter]}
-            </h1>
-            <p className="text-xs text-subtle">
-              {filtered.length} of {items.length} items
-              {scannedAt && ` · scanned ${formatTimestamp(scannedAt)}`}
-            </p>
-          </div>
-          <div className="w-[420px] max-w-full">
-            <SearchBar />
-          </div>
-        </header>
-
         <Banners />
 
-        <div className="relative flex-1 overflow-y-auto p-6">
-          {loading && !stackHasItems ? (
-            <ScanningState />
-          ) : !claudeCodeDetected ? (
-            <EmptyState category="all" claudeCodeMissing onRescan={() => void rescan()} />
-          ) : !stackHasItems ? (
-            <EmptyState category="all" onImport={openImport} />
-          ) : filtered.length === 0 ? (
-            <EmptyState
-              category={filter === 'all' ? 'all' : filter}
-              filtered
-              onImport={openImport}
-            />
-          ) : (
-            <StackGrid items={filtered} selectedId={selectedId} onSelect={setSelected} />
-          )}
-        </div>
+        {view === 'discover' ? (
+          <DiscoverView />
+        ) : (
+          <>
+            <header className="flex items-center justify-between gap-4 border-b border-border-subtle px-6 py-3">
+              <div className="min-w-0 flex-1">
+                <h1 className="truncate text-lg font-semibold tracking-tight text-text">
+                  {filter === 'all' ? 'Your stack' : CATEGORY_LABELS[filter]}
+                </h1>
+                <p className="text-xs text-subtle">
+                  {filtered.length} of {items.length} items
+                  {scannedAt && ` · scanned ${formatTimestamp(scannedAt)}`}
+                </p>
+              </div>
+              <div className="w-[420px] max-w-full">
+                <SearchBar />
+              </div>
+            </header>
+
+            <div className="relative flex-1 overflow-y-auto p-6">
+              {loading && !stackHasItems ? (
+                <ScanningState />
+              ) : !claudeCodeDetected ? (
+                <EmptyState category="all" claudeCodeMissing onRescan={() => void rescan()} />
+              ) : !stackHasItems ? (
+                <EmptyState category="all" onImport={openImport} />
+              ) : filtered.length === 0 ? (
+                <EmptyState
+                  category={filter === 'all' ? 'all' : filter}
+                  filtered
+                  onImport={openImport}
+                />
+              ) : (
+                <StackGrid items={filtered} selectedId={selectedId} onSelect={setSelected} />
+              )}
+            </div>
+          </>
+        )}
       </main>
 
       <DetailPanel item={selectedItem} onClose={() => setSelected(null)} />

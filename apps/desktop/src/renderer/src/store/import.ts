@@ -21,6 +21,8 @@ interface ImportStore {
   error: string | null;
 
   openModal: () => void;
+  /** Open with a URL pre-filled and immediately fetch the preview. */
+  openModalWithUrl: (url: string) => Promise<void>;
   closeModal: () => Promise<void>;
   setUrl: (url: string) => void;
   setOverrideCategory: (category: StackCategory | null) => void;
@@ -41,6 +43,22 @@ export const useImportStore = create<ImportStore>((set, get) => ({
   error: null,
 
   openModal: () => set({ open: true, stage: 'idle', url: '', preview: null, error: null }),
+
+  openModalWithUrl: async (url) => {
+    set({
+      open: true,
+      stage: 'idle',
+      url,
+      preview: null,
+      error: null,
+      overrideCategory: null,
+      editableName: '',
+    });
+    // Immediately kick off the preview — Discover users have already
+    // committed to "this repo, that category" by clicking Install. No reason
+    // to make them click Preview a second time.
+    await get().loadPreview();
+  },
 
   closeModal: async () => {
     const id = get().preview?.previewId;

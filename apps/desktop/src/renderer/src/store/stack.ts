@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { StackCategory, StackItem } from '@bridge/core';
 
 export type CategoryFilter = 'all' | StackCategory;
+export type AppView = 'stack' | 'discover';
 
 export interface MutationFailure {
   /** Brief one-line message shown in the failure banner. */
@@ -24,6 +25,7 @@ interface StackStore {
   selectedId: string | null;
   sidebarCollapsed: boolean;
   hasSeenReveal: boolean;
+  view: AppView;
 
   /** Set of item ids currently being mutated, so the UI can show pending state. */
   pendingIds: Set<string>;
@@ -39,6 +41,7 @@ interface StackStore {
   setSelected: (id: string | null) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   markRevealSeen: () => void;
+  setView: (view: AppView) => void;
 
   toggleItem: (item: StackItem, enabled: boolean) => Promise<void>;
   updateDescription: (item: StackItem, description: string) => Promise<void>;
@@ -79,6 +82,7 @@ export const useStackStore = create<StackStore>((set, get) => ({
   selectedId: null,
   sidebarCollapsed: readBoolFlag(SIDEBAR_KEY),
   hasSeenReveal: readBoolFlag(REVEAL_KEY),
+  view: 'stack',
 
   pendingIds: new Set<string>(),
   failure: null,
@@ -120,9 +124,12 @@ export const useStackStore = create<StackStore>((set, get) => ({
     }
   },
 
-  setFilter: (filter) => set({ filter }),
+  // Selecting a stack category implicitly switches the view back to the stack.
+  // Otherwise users on Discover clicking "MCPs" would be confused why nothing changes.
+  setFilter: (filter) => set({ filter, view: 'stack' }),
   setSearch: (search) => set({ search }),
   setSelected: (id) => set({ selectedId: id }),
+  setView: (view) => set({ view, selectedId: null }),
 
   setSidebarCollapsed: (collapsed) => {
     writeBoolFlag(SIDEBAR_KEY, collapsed);
