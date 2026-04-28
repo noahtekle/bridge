@@ -1,0 +1,43 @@
+---
+const STEPS = [
+  {
+    n: '01',
+    title: 'Bridge scans your config',
+    body: 'On launch, Bridge reads ~/.claude.json and ~/.claude/. No auth, no setup, no permissions to grant.',
+  },
+  {
+    n: '02',
+    title: 'Cards appear for everything you have',
+    body: 'MCPs, Skills, Agents, Plugins, slash commands, and hooks — each a card with description, source, and a real toggle.',
+  },
+  {
+    n: '03',
+    title: 'Toggle, edit, add, install from anywhere',
+    body: 'Manage from the dashboard, the Cmd-K palette, or by importing straight from a GitHub URL. Every write is backed up first.',
+  },
+] as const;
+---
+
+<ol class="grid gap-4 md:grid-cols-3">
+  {
+    STEPS.map((step, idx) => (
+      <li class="relative rounded-xl border border-border bg-surface p-6">
+        <span class="font-mono text-xs tracking-widest text-subtle">{step.n}</span>
+        <h3 class="mt-3 text-md font-semibold text-text">{step.title}</h3>
+        <p class="mt-2 text-sm leading-relaxed text-muted">{step.body}</p>
+
+        {/* Connector chevron between desktop cards. */}
+        {idx < STEPS.length - 1 && (
+          <span
+            aria-hidden="true"
+            class="absolute right-[-14px] top-1/2 hidden -translate-y-1/2 text-subtle md:block"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </span>
+        )}
+      </li>
+    ))
+  }
+</ol>

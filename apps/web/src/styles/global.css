@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-bg text-text font-sans antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:focus-visible {
+  @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-bg;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/*
+ * Stack-reveal counter — pure-CSS count-up using @property + counter-reset
+ * animation. Each counter ticks from 0 to its final value over the duration
+ * defined by the inline --duration custom property. Triggered by adding the
+ * `is-revealed` class to a parent.
+ */
+@property --num {
+  syntax: '<integer>';
+  initial-value: 0;
+  inherits: false;
+}
+
+.counter {
+  font-variant-numeric: tabular-nums;
+  counter-reset: num var(--num);
+}
+.counter::after {
+  content: counter(num);
+}
+.is-revealed .counter[data-target='8'] {
+  animation: count-8 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.is-revealed .counter[data-target='12'] {
+  animation: count-12 800ms cubic-bezier(0.16, 1, 0.3, 1) 200ms forwards;
+}
+.is-revealed .counter[data-target='4'] {
+  animation: count-4 600ms cubic-bezier(0.16, 1, 0.3, 1) 400ms forwards;
+}
+.is-revealed .counter[data-target='2'] {
+  animation: count-2 500ms cubic-bezier(0.16, 1, 0.3, 1) 600ms forwards;
+}
+.is-revealed .counter[data-target='6'] {
+  animation: count-6 700ms cubic-bezier(0.16, 1, 0.3, 1) 800ms forwards;
+}
+.is-revealed .counter[data-target='3'] {
+  animation: count-3 600ms cubic-bezier(0.16, 1, 0.3, 1) 1000ms forwards;
+}
+
+@keyframes count-8 {
+  from { --num: 0; }
+  to { --num: 8; }
+}
+@keyframes count-12 {
+  from { --num: 0; }
+  to { --num: 12; }
+}
+@keyframes count-4 {
+  from { --num: 0; }
+  to { --num: 4; }
+}
+@keyframes count-2 {
+  from { --num: 0; }
+  to { --num: 2; }
+}
+@keyframes count-6 {
+  from { --num: 0; }
+  to { --num: 6; }
+}
+@keyframes count-3 {
+  from { --num: 0; }
+  to { --num: 3; }
+}
+
+/* Fallback for browsers without @property support — show the final number immediately. */
+@supports not (background: paint(something)) {
+  .counter::after {
+    content: attr(data-target);
+  }
+}

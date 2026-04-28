@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Marketing site — apps/web
+
+New `@bridge/web` workspace: static Astro + Tailwind site for `bridge.app`. Reuses the desktop app's design tokens (Inter + JetBrains Mono, zinc palette, six category gradient icons) so the site and the app feel like one product.
+
+- **Hero**: tagline + two download CTAs pointing to `github.com/noahtekle/bridge/releases` (Mac + Windows). Inline animated stack-reveal demo using pure-CSS counters (no JS framework, scroll-triggered via `IntersectionObserver`). Counters labelled "Sample stack — your numbers depend on what you have installed" so they read as illustrative, not a metric claim.
+- **Three-feature row**: Read your stack / Manage with one click / Install from GitHub. Each describes a feature shipping in v0.1.
+- **How it works**: 3-step diagram — Bridge scans your config → Cards appear → Toggle, edit, add, install from anywhere.
+- **Privacy callout**: the trust pitch — local-first, no accounts, no telemetry, every write backed up + atomic, MIT open source.
+- **Discover preview**: 6 of the 16 verified curated entries (Superpowers, claude-mem, gstack, Skill Creator, MCP Builder, PDF), with a note that the full list is grown via PRs not algorithms.
+- **Footer**: GitHub, MIT license, changelog. No social icons that don't go anywhere.
+- Astro telemetry disabled at scaffold time. **Zero analytics, zero tracking, no email capture** — would undermine the privacy pitch.
+- Output: ~30 KB HTML + ~15 KB CSS, no JS frameworks.
+- Cloudflare Pages-ready. Build cmd `pnpm --filter @bridge/web build`, output dir `apps/web/dist`. Setup notes in `apps/web/README.md`.
+
 ### Discover refit — every entry verified
 
 - 100% of repo URLs and subPaths verified against the GitHub API at curation time
