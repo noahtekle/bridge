@@ -29,6 +29,23 @@ Bridge is the missing GUI layer.
 - Linear/Raycast/Arc-inspired interface, dark mode default, system theme sync
 - Local-only — your config never leaves your machine
 
+## Screenshots
+
+### Command palette
+![Cmd-K palette searches your stack and runs actions](apps/desktop/docs/screenshots/command-palette.png)
+
+### Discover tab
+![16 hand-curated, URL-verified plugins and skills](apps/desktop/docs/screenshots/discover-tab.png)
+
+### Card detail
+![Click any card to see full details, edit, or delete](apps/desktop/docs/screenshots/card-detail.png)
+
+### GitHub import
+![Paste a URL, preview what'll be written, then install](apps/desktop/docs/screenshots/import-preview.png)
+
+### Settings
+![Theme, backup retention, scan-on-focus](apps/desktop/docs/screenshots/settings.png)
+
 ## Download
 
 **Bridge is unsigned for v0.1.** First launch on each platform shows a security warning — see [bypass instructions](#why-is-this-unsigned) below.

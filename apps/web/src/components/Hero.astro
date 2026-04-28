@@ -1,6 +1,4 @@
 ---
-import StackReveal from './StackReveal.astro';
-
 const RELEASES_URL = 'https://github.com/noahtekle/bridge/releases';
 const REPO_URL = 'https://github.com/noahtekle/bridge';
 ---
@@ -107,7 +105,17 @@ const REPO_URL = 'https://github.com/noahtekle/bridge';
       </div>
 
       <div class="hero-rise hero-rise-3 lg:justify-self-end">
-        <StackReveal />
+        <div class="overflow-hidden rounded-xl border border-border bg-surface shadow-2xl shadow-black/40 ring-1 ring-white/5">
+          <img
+            src="/dashboard.png"
+            alt="Bridge dashboard showing 107 items across MCPs, Plugins, Skills, Agents, Commands, and Hooks"
+            width="1280"
+            height="800"
+            loading="eager"
+            fetchpriority="high"
+            class="block w-full h-auto"
+          />
+        </div>
       </div>
     </div>
   </div>
