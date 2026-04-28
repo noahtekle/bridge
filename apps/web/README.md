@@ -1,8 +1,9 @@
-# `@bridge/web` — bridge.app
+# `@bridge/web` — bridge-app.pages.dev
 
-The Bridge marketing site. Static Astro + Tailwind. Same design tokens as the
-desktop app — same Inter + JetBrains Mono, same zinc palette, same category
-gradients — so the site and the app feel like one product.
+The Bridge marketing site. Static Astro + Tailwind, hosted on Cloudflare Pages
+free tier at `https://bridge-app.pages.dev`. Same design tokens as the desktop
+app — same Inter + JetBrains Mono, same zinc palette, same category gradients —
+so the site and the app feel like one product.
 
 ## Local dev
 
@@ -24,13 +25,15 @@ the IntersectionObserver that triggers the stack-reveal counter animation.
 
 ## Deploy — Cloudflare Pages
 
-Free tier, static, no edge functions needed for v0.1.
+Free tier, static. v0.1 ships on the free `bridge-app.pages.dev` subdomain;
+custom domain is a v0.2 problem.
 
 **One-time setup:**
 
 1. Sign in at https://dash.cloudflare.com → Workers & Pages → Create → Pages
 2. Connect to this GitHub repo (`noahtekle/bridge`)
-3. Build configuration:
+3. Project name: `bridge-app` (this becomes the `bridge-app.pages.dev` subdomain)
+4. Build configuration:
    - **Production branch**: `main`
    - **Build command**: `pnpm --filter @bridge/web build`
    - **Build output directory**: `apps/web/dist`
@@ -38,12 +41,17 @@ Free tier, static, no edge functions needed for v0.1.
    - **Environment variables**:
      - `NODE_VERSION` = `20`
      - `PNPM_VERSION` = `10`
-4. Save and Deploy
-5. Custom domain (Settings → Custom domains) — point your `bridge.app` /
-   `usebridge.app` / etc. at the deployment
+5. Save and Deploy. First deploy takes ~2 min.
 
-Subsequent pushes to `main` auto-deploy. Pushes to other branches deploy as
-preview URLs (handy when iterating on the page).
+Subsequent pushes to `main` auto-deploy. Pushes to other branches (e.g.
+`week-4`) get preview URLs at `<branch>.bridge-app.pages.dev` — handy when
+iterating on the page without merging.
+
+**Adding a custom domain later (v0.2):**
+
+Settings → Custom domains → "Set up a custom domain" → enter the domain →
+Cloudflare walks you through the DNS records. If the domain is already on
+Cloudflare it's instant; otherwise add a CNAME `@` → `bridge-app.pages.dev`.
 
 ## What's NOT on this site (and isn't going on it)
 

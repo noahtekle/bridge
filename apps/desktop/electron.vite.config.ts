@@ -16,11 +16,8 @@ export default defineConfig({
         '@bridge/core': resolve(__dirname, '../../packages/core/src'),
       },
     },
-    build: {
-      rollupOptions: {
-        external: ['better-sqlite3', 'keytar'],
-      },
-    },
+    // No external native modules in v0.1. Add 'better-sqlite3' / 'keytar' back
+    // here when those features land in V1.5.
   },
   preload: {
     plugins: [externalizeDepsPlugin({ exclude: WORKSPACE_DEPS })],

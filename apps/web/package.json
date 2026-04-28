@@ -2,7 +2,7 @@
   "name": "@bridge/web",
   "version": "0.0.1",
   "private": true,
-  "description": "Bridge marketing site — bridge.app",
+  "description": "Bridge marketing site — bridge-app.pages.dev",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",

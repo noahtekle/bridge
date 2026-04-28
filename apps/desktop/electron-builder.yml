@@ -15,9 +15,8 @@ files:
   - '!**/node_modules/.bin'
   - '!**/{.DS_Store,.git,.gitignore,.editorconfig,Thumbs.db,thumbs.db,ehthumbs.db}'
 
-asarUnpack:
-  - '**/node_modules/better-sqlite3/**/*'
-  - '**/node_modules/keytar/**/*'
+# asarUnpack: required if/when native modules return in V1.5 (better-sqlite3
+# for the SQLite cache, keytar for GitHub PAT storage). Empty for v0.1.
 
 # v0.1 ships unsigned. No signing config here.
 # Adding signing later requires:

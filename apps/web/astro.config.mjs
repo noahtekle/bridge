@@ -3,7 +3,7 @@ import tailwind from '@astrojs/tailwind';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://bridge.app',
+  site: 'https://bridge-app.pages.dev',
   integrations: [tailwind({ applyBaseStyles: false })],
   output: 'static',
 });
