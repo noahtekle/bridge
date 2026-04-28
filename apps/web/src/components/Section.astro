@@ -17,8 +17,9 @@ const { id, eyebrow, heading, subheading, hero, class: className = '' } = Astro.
 
 <section
   id={id}
+  data-scroll-reveal
   class:list={[
-    'mx-auto w-full max-w-5xl px-6',
+    'scroll-reveal mx-auto w-full max-w-5xl px-6',
     hero ? 'py-20 sm:py-28' : 'py-14 sm:py-20',
     className,
   ]}

@@ -54,7 +54,7 @@ const ENTRIES = [
   <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
     {
       ENTRIES.map((entry) => (
-        <article class="rounded-lg border border-border bg-surface p-4 transition-colors duration-200 hover:bg-surface-raised hover:border-border-subtle">
+        <article class="card-lift rounded-lg border border-border bg-surface p-4 hover:bg-surface-raised hover:border-border-subtle">
           <div class="mb-3 flex items-start justify-between gap-3">
             <CategoryIcon category={entry.cat as never} size={32} />
           </div>
