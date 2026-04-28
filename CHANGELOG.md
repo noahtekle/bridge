@@ -7,9 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Week 4 — Ship prep
+
+- **Native deps removed.** `better-sqlite3` and `keytar` were listed but never imported in v0.1 code (planned for v1.5: SQLite cache + GitHub PAT storage). Removed both so builds don't need MSVC on Windows or equivalent on Mac. Will return when those features land.
+- **Electron pinned** from `^32.0.0` to `32.3.3` so electron-builder can compute the version reliably from a hoisted pnpm install.
+- **electron-builder.yml** explicitly disables identity discovery (Mac) and certificate file (Windows). Empty `asarUnpack` since no native modules left to unpack.
+- **GitHub Actions release workflow upgraded** — runs typecheck + tests + build on every tag push; Mac and Windows in parallel; uploads `.dmg` + `.exe` + `latest-*.yml` to the matching Release; archives build artifacts on every run for non-tag dispatches; concurrency groups cancel in-flight builds when the tag is force-pushed; 25-minute timeout per matrix job.
+- **README upgraded** with real screenshot of the Bridge dashboard (107 items captured from the maintainer's actual install), download links to the Releases page, full unsigned-build rationale, Mac + Windows bypass instructions, privacy contract, feature checklist, deferred-roadmap section, architecture summary, and contributing pointer to the Discover curated list.
+- **Marketing site URL** moved from the placeholder `bridge.app` to the actual ship target `bridge-app.pages.dev` (Cloudflare Pages free subdomain). Astro `site` config, package descriptions, and README deploy notes all updated.
+- **Cloudflare Pages deploy steps** documented in `apps/web/README.md` — including the project-name → subdomain mapping (`bridge-app` → `bridge-app.pages.dev`) and the v0.2 path for adding a custom domain later.
+- **Launch posts drafted** at `docs/launch-posts.md` — X main tweet + thread, r/ClaudeAI long-form, Claude Code Discord, Show HN, Product Hunt. Every claim verifiable today; pre-flight checklist included.
+
 ### Marketing site — apps/web
 
-New `@bridge/web` workspace: static Astro + Tailwind site for `bridge.app`. Reuses the desktop app's design tokens (Inter + JetBrains Mono, zinc palette, six category gradient icons) so the site and the app feel like one product.
+New `@bridge/web` workspace: static Astro + Tailwind site for `bridge-app.pages.dev`. Reuses the desktop app's design tokens (Inter + JetBrains Mono, zinc palette, six category gradient icons) so the site and the app feel like one product.
 
 - **Hero**: tagline + two download CTAs pointing to `github.com/noahtekle/bridge/releases` (Mac + Windows). Inline animated stack-reveal demo using pure-CSS counters (no JS framework, scroll-triggered via `IntersectionObserver`). Counters labelled "Sample stack — your numbers depend on what you have installed" so they read as illustrative, not a metric claim.
 - **Three-feature row**: Read your stack / Manage with one click / Install from GitHub. Each describes a feature shipping in v0.1.

@@ -1,6 +1,4 @@
 ---
-import StackReveal from './StackReveal.astro';
-
 const RELEASES_URL = 'https://github.com/noahtekle/bridge/releases';
 const REPO_URL = 'https://github.com/noahtekle/bridge';
 ---
@@ -14,16 +12,16 @@ const REPO_URL = 'https://github.com/noahtekle/bridge';
   >
   </div>
 
-  {/* Two ambient gradient blobs that drift slowly. GPU-only properties (transform / opacity), no layout cost. */}
+  {/* Drifting gradient blobs — visibly atmospheric. GPU-only, no layout cost. */}
   <div
     aria-hidden="true"
-    class="blob-a pointer-events-none absolute -left-32 top-10 -z-10 h-[420px] w-[420px] rounded-full opacity-30 blur-[110px]"
+    class="blob-a pointer-events-none absolute -left-32 top-10 -z-10 h-[460px] w-[460px] rounded-full blur-[100px]"
     style="background: radial-gradient(circle, #3B82F6 0%, transparent 70%);"
   >
   </div>
   <div
     aria-hidden="true"
-    class="blob-b pointer-events-none absolute -right-24 top-40 -z-10 h-[480px] w-[480px] rounded-full opacity-25 blur-[120px]"
+    class="blob-b pointer-events-none absolute -right-24 top-40 -z-10 h-[520px] w-[520px] rounded-full blur-[110px]"
     style="background: radial-gradient(circle, #A855F7 0%, transparent 70%);"
   >
   </div>
@@ -32,11 +30,11 @@ const REPO_URL = 'https://github.com/noahtekle/bridge';
     <div class="grid items-center gap-12 lg:grid-cols-2">
       <div>
         <span class="hero-rise hero-rise-1 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs text-muted">
-          <span class="grid h-1.5 w-1.5 place-items-center rounded-full bg-success" aria-hidden="true"></span>
+          <span class="status-pulse h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true"></span>
           v0.1 — pre-release
         </span>
         <h1
-          class="hero-rise hero-rise-2 mt-6 bg-gradient-to-br from-text from-30% to-text/60 bg-clip-text pb-1 text-4xl font-bold leading-tight tracking-tight text-transparent sm:text-5xl"
+          class="hero-rise hero-rise-2 title-sheen mt-6 pb-1 text-4xl font-bold leading-tight tracking-tight sm:text-5xl"
           style="text-wrap: balance;"
         >
           The OS for Claude Code.
@@ -107,7 +105,17 @@ const REPO_URL = 'https://github.com/noahtekle/bridge';
       </div>
 
       <div class="hero-rise hero-rise-3 lg:justify-self-end">
-        <StackReveal />
+        <div class="overflow-hidden rounded-xl border border-border bg-surface shadow-2xl shadow-black/40 ring-1 ring-white/5">
+          <img
+            src="/dashboard.png"
+            alt="Bridge dashboard showing 107 items across MCPs, Plugins, Skills, Agents, Commands, and Hooks"
+            width="1280"
+            height="800"
+            loading="eager"
+            fetchpriority="high"
+            class="block w-full h-auto"
+          />
+        </div>
       </div>
     </div>
   </div>

@@ -14,9 +14,13 @@ import { resolve, sep } from 'node:path';
 export async function resolveSubPath(cloneRoot: string, subPath?: string): Promise<string> {
   if (!subPath || subPath.trim().length === 0) return cloneRoot;
 
-  // Normalize to forward-slashes-then-resolve so users can paste either
-  // POSIX or Windows-style separators in the curated.json without breaking.
-  const normalizedInput = subPath.replace(/\\/g, '/').replace(/^\/+/, '');
+  // Normalize backslashes so curated.json can use either POSIX or Windows
+  // separators — but keep leading separators intact. Stripping a leading `/`
+  // would silently coerce a POSIX-absolute escape attempt (`/etc/passwd`)
+  // into a relative join under cloneRoot, which the existing prefix check
+  // would then reject for a confusing reason ("not found") instead of the
+  // correct one ("escapes"). Let path.resolve handle absolute-vs-relative.
+  const normalizedInput = subPath.replace(/\\/g, '/');
   const root = resolve(cloneRoot);
   const target = resolve(cloneRoot, normalizedInput);
 

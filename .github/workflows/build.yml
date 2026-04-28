@@ -5,11 +5,22 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Optional tag to build (omit to build current ref without releasing)'
+        required: false
+        type: string
+
+# Cancel in-flight runs on the same branch when a new push lands.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     name: Build (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -20,9 +31,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up pnpm
+        # Version is read from `packageManager` in root package.json — don't
+        # specify it here too or the action errors with ERR_PNPM_BAD_PM_VERSION.
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -30,29 +41,62 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      - name: Install
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build (Mac)
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Build for Mac (unsigned, both arches)
         if: matrix.os == 'macos-latest'
         run: pnpm build:mac
         env:
-          # v0.1 ships unsigned. No CSC_LINK or APPLE_ID secrets configured.
-          # Add signing later if traction warrants.
+          # Hard-disable identity discovery so electron-builder can't
+          # accidentally pick up a developer's keychain on the runner.
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
-      - name: Build (Windows)
+      - name: Build for Windows (unsigned, NSIS x64)
         if: matrix.os == 'windows-latest'
         run: pnpm build:win
 
-      - name: Upload artifacts to release
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: List release artifacts
+        shell: bash
+        run: ls -lh apps/desktop/release/ || true
+
+      - name: Upload Mac artifacts to release
+        if: matrix.os == 'macos-latest' && startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: |
             apps/desktop/release/*.dmg
-            apps/desktop/release/*.exe
-            apps/desktop/release/*.yml
-            apps/desktop/release/*.blockmap
+            apps/desktop/release/*.dmg.blockmap
+            apps/desktop/release/latest-mac.yml
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows artifacts to release
+        if: matrix.os == 'windows-latest' && startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            apps/desktop/release/*.exe
+            apps/desktop/release/*.exe.blockmap
+            apps/desktop/release/latest.yml
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build artifacts also kept on the workflow run (handy for non-tag dispatches
+      # so we can grab a pre-release binary without minting a tag).
+      - name: Archive build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bridge-${{ matrix.os }}
+          path: apps/desktop/release/
+          if-no-files-found: ignore
+          retention-days: 14
