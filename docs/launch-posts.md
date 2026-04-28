@@ -4,12 +4,17 @@ Drafts for the v0.1 launch across X, r/ClaudeAI, the Claude Code Discord,
 Show HN, and Product Hunt. Every claim is verifiable today — no fictional
 metrics, no exaggerated user counts, no testimonials.
 
+**v0.1.0 is Windows-only.** Mac lands in v0.1.1 with proper code signing
+and notarization. The unsigned `.dmg` was tripping Gatekeeper too
+aggressively for a clean first-run, so it's getting held back rather
+than shipped half-broken.
+
 **Pre-flight checklist before posting:**
 
-- [ ] `v0.1.0` tag pushed and Releases page populated with `.dmg` + `.exe`
-- [ ] `bridge-stack.pages.dev` is live and renders correctly
+- [ ] `v0.1.0` tag pushed and Releases page populated with `Bridge.Setup.0.1.0.exe`
+- [ ] `bridge-stack.pages.dev` is live and renders the Windows-only CTA
 - [ ] README screenshot loads from the raw GitHub URL
-- [ ] Tested both downloads on a clean machine (Mac + Windows) once
+- [ ] Tested the `.exe` on a clean Windows machine once
 
 ---
 
@@ -21,7 +26,9 @@ metrics, no exaggerated user counts, no testimonials.
 >
 > See, manage, and install MCPs, Skills, Agents, Plugins, slash commands, and hooks from one app. Local-first, open source, MIT.
 >
-> Mac + Windows: bridge-stack.pages.dev
+> Windows (x64) today. Mac in v0.1.1.
+>
+> bridge-stack.pages.dev
 
 Attach: dashboard screenshot.
 
@@ -37,7 +44,7 @@ Attach: dashboard screenshot.
 
 > 5/ Privacy is the contract — zero outbound network calls except when you trigger an import. No accounts, no telemetry, no analytics. Open source so you can audit.
 
-> 6/ v0.1 ships unsigned (signing comes when traction warrants the $300+/yr). README has bypass instructions for both platforms.
+> 6/ v0.1.0 ships Windows-only and unsigned. SmartScreen warns on first launch — README has the one-click bypass. Mac is held for v0.1.1 to ship signed + notarized.
 >
 > Repo: github.com/noahtekle/bridge
 
@@ -47,7 +54,7 @@ Attach: dashboard screenshot.
 
 ### Title
 
-`Bridge v0.1 — visual dashboard for your Claude Code stack (open source, local-first)`
+`Bridge v0.1 — visual dashboard for your Claude Code stack (Windows, open source, local-first)`
 
 ### Body
 
@@ -63,9 +70,9 @@ Bridge is a desktop app that:
 
 **Privacy is the whole pitch:** zero outbound calls except when you trigger a GitHub import. No accounts, no telemetry, no cloud. MIT, open source, you can audit before you trust it.
 
-**v0.1 ships unsigned** for cost reasons — first launch shows a security warning, README has bypass instructions for Mac (right-click → Open) and Windows (SmartScreen → Run anyway). Signing comes when the project earns it.
+**v0.1.0 is Windows-only.** SmartScreen warns on first launch — More info → Run anyway. Mac is coming in v0.1.1 with proper code signing; the unsigned `.dmg` was tripping Gatekeeper too aggressively to ship.
 
-Mac + Windows: [github.com/noahtekle/bridge/releases](https://github.com/noahtekle/bridge/releases)
+Windows (x64): [github.com/noahtekle/bridge/releases](https://github.com/noahtekle/bridge/releases)
 Site: [bridge-stack.pages.dev](https://bridge-stack.pages.dev)
 Source: [github.com/noahtekle/bridge](https://github.com/noahtekle/bridge)
 
@@ -89,10 +96,10 @@ Feedback welcome — bug reports and Discover-list PRs especially.
 > • Cmd-K palette for everything
 > • Local-first — never phones home
 >
-> Mac + Windows downloads: github.com/noahtekle/bridge/releases
+> Windows (x64) download: github.com/noahtekle/bridge/releases
 > Site: bridge-stack.pages.dev
 >
-> v0.1 ships unsigned (cost reasons), README walks through the bypass on each platform. Open source, MIT.
+> v0.1.0 is Windows-only — Mac follows in v0.1.1 with proper code signing. SmartScreen warns on first launch; README walks through the one-click bypass. Open source, MIT.
 >
 > Would love feedback from people who actually live in Claude Code daily.
 
@@ -102,7 +109,7 @@ Feedback welcome — bug reports and Discover-list PRs especially.
 
 ### Title
 
-`Show HN: Bridge — visual dashboard for your Claude Code stack`
+`Show HN: Bridge — visual dashboard for your Claude Code stack (Windows)`
 
 ### Body
 
@@ -122,13 +129,14 @@ Stack: Electron 32 + Vite + React + TypeScript + Tailwind. 58 vitest tests cover
 
 Privacy is the contract: zero outbound calls except when the user triggers a GitHub import. No accounts, no telemetry, no analytics. MIT, open source, auditable.
 
-Honest about what's not in v0.1:
+Honest about what's not in v0.1.0:
 
+- **Mac binary** — held for v0.1.1. The unsigned `.dmg` was producing too many Gatekeeper false-positives on first launch. Rather than ship a workaround, v0.1.1 lands with proper code signing + notarization. If you want it on Mac today: `pnpm install && pnpm build:mac` from the repo.
+- **Windows is unsigned** — SmartScreen warns on first launch (More info → Run anyway). Source is public, you can audit before approving. Signing comes when traction warrants the cost.
 - **MCP install path** — Bridge can't auto-install MCP servers from a clone yet (they need npm + JSON config patching beyond what the import flow does). Discover entries are skills + plugins for now. MCP install lands in v0.2.
-- **Code signing** — both binaries are unsigned. Cost reasons. README has bypass instructions for Mac (right-click → Open) and Windows (SmartScreen → Run anyway). Source is public, you can audit before approving.
 - **Cloud sync, marketplace, performance metrics** — all on the roadmap, none in v0.1.
 
-Mac + Windows: [github.com/noahtekle/bridge/releases](https://github.com/noahtekle/bridge/releases)
+Windows (x64): [github.com/noahtekle/bridge/releases](https://github.com/noahtekle/bridge/releases)
 Site: [bridge-stack.pages.dev](https://bridge-stack.pages.dev)
 Source: [github.com/noahtekle/bridge](https://github.com/noahtekle/bridge)
 
@@ -150,7 +158,7 @@ A Discover tab with 16 hand-curated, URL-verified plugins and skills lets you se
 
 Local-first. Zero outbound network calls except when you explicitly trigger a GitHub import. No accounts, no telemetry, no cloud. MIT, open source, auditable end-to-end.
 
-Mac and Windows. Unsigned for v0.1 — first launch shows a security prompt, README has bypass instructions.
+Windows (x64) ships in v0.1.0 — Mac follows in v0.1.1 with proper code signing. SmartScreen warns on first launch; README has the one-click bypass.
 
 ### Topics
 Developer Tools, Productivity, AI, Open Source
@@ -165,10 +173,11 @@ Developer Tools, Productivity, AI, Open Source
 >
 > 2. **Mutations are safe.** Every write snapshots the source to `~/.claude/backups/<timestamp>/` first. Atomic JSON writes. 58 vitest tests covering the write paths.
 >
-> 3. **Honest about scope.** v0.1 covers reads + writes + GitHub import + Discover. MCP server auto-install, cloud sync, marketplace — all on the roadmap, none on the page.
+> 3. **Honest about scope.** v0.1.0 covers reads + writes + GitHub import + Discover, Windows only. MCP server auto-install, cloud sync, marketplace — all on the roadmap, none on the page.
 >
-> Honest about what's not v0.1 yet:
-> • Code signing (cost reasons; README has bypass instructions)
-> • MCP server install (still needs the README → mcpServers JSON path)
+> Honest about what's not v0.1.0 yet:
+> • Mac binary — held for v0.1.1 to ship code-signed and notarized. The unsigned `.dmg` was tripping Gatekeeper too aggressively to call it shipped.
+> • Windows code signing — coming when traction warrants the cost; SmartScreen has a clean one-click bypass in the meantime.
+> • MCP server install — still needs the README → mcpServers JSON path.
 >
 > Feedback especially welcome from people whose actual Claude Code stack this either solves or doesn't.

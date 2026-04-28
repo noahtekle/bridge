@@ -48,12 +48,13 @@ Bridge is the missing GUI layer.
 
 ## Download
 
-**Bridge is unsigned for v0.1.** First launch on each platform shows a security warning — see [bypass instructions](#why-is-this-unsigned) below.
+**v0.1.0 ships Windows-only.** Mac support lands in v0.1.1 with proper code signing — the unsigned Mac binary trips Gatekeeper too aggressively for a clean first-run.
 
 | Platform | Download |
 |---|---|
-| macOS (Apple Silicon + Intel) | [Latest release](https://github.com/noahtekle/bridge/releases/latest) |
 | Windows (x64) | [Latest release](https://github.com/noahtekle/bridge/releases/latest) |
+
+**Bridge is unsigned for v0.1.** First launch on Windows shows a SmartScreen warning — see [bypass instructions](#why-is-this-unsigned) below.
 
 Or build from source:
 
@@ -70,16 +71,11 @@ Bridge is open source. Every write is backed up first. There are no outbound net
 
 Signing adds a layer of OS-level trust on top of that. It's on the roadmap for a future release. For v0.1, that's the whole safety story — public source, atomic backed-up writes, zero telemetry. Once you approve the app on first launch, your OS remembers and never warns again.
 
-### macOS — first launch
+### Mac support
 
-The default Open will say _"Bridge can't be opened because it is from an unidentified developer."_
+Mac is coming in v0.1.1. The v0.1.0 unsigned `.dmg` was producing too many Gatekeeper false-positives on first launch — not the experience this app is supposed to deliver. Rather than ship a workaround, v0.1.1 will land with proper code signing + notarization.
 
-**Bypass:**
-
-1. Locate `Bridge.app` in your Applications folder
-2. **Right-click → Open** (don't double-click)
-3. Click **Open** in the confirmation dialog
-4. macOS remembers the choice; future launches are normal
+If you want to use Bridge on Mac today, you can build from source — `pnpm install && pnpm build:mac` produces an unsigned `.dmg` you can right-click → Open.
 
 ### Windows — first launch
 
@@ -115,7 +111,7 @@ Settings live in Bridge's own dir at `<userData>/bridge-settings.json` — never
 - ✅ Privacy modal: first-run + linked from Settings
 - ✅ "Claude Code not detected" first-run fallback if `~/.claude/` is missing
 - ✅ Hotkeys: Cmd-K palette, Cmd-, settings, Cmd-N new (import), Cmd-R rescan, Cmd-F search, Esc close
-- ✅ Cross-platform: Mac (Apple Silicon + Intel) and Windows (x64)
+- ✅ Windows (x64) ships in v0.1.0 — Mac (Apple Silicon + Intel) lands in v0.1.1 with proper code signing
 
 ## Roadmap
 
