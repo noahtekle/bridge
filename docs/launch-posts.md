@@ -69,7 +69,7 @@ Mac + Windows: [github.com/noahtekle/bridge/releases](https://github.com/noahtek
 Site: [bridge-stack.pages.dev](https://bridge-stack.pages.dev)
 Source: [github.com/noahtekle/bridge](https://github.com/noahtekle/bridge)
 
-Feedback welcome. Bug reports and Discover-list PRs especially welcome.
+Feedback welcome — bug reports and Discover-list PRs especially.
 
 ---
 
@@ -132,7 +132,7 @@ Mac + Windows: [github.com/noahtekle/bridge/releases](https://github.com/noahtek
 Site: [bridge-stack.pages.dev](https://bridge-stack.pages.dev)
 Source: [github.com/noahtekle/bridge](https://github.com/noahtekle/bridge)
 
-Happy to answer architecture questions and especially want to hear from people whose actual Claude Code workflow this either solves or doesn't.
+Want to hear from people whose actual Claude Code workflow this either solves or doesn't — architecture Qs welcome too.
 
 ---
 
@@ -148,7 +148,7 @@ Bridge is a desktop app that turns the Claude Code config tree into a visual das
 
 A Discover tab with 16 hand-curated, URL-verified plugins and skills lets you set up a fresh Claude Code install in minutes.
 
-Local-first by design. Zero outbound network calls except when you explicitly trigger a GitHub import. No accounts, no telemetry, no cloud. MIT, open source, auditable end-to-end.
+Local-first. Zero outbound network calls except when you explicitly trigger a GitHub import. No accounts, no telemetry, no cloud. MIT, open source, auditable end-to-end.
 
 Mac and Windows. Unsigned for v0.1 — first launch shows a security prompt, README has bypass instructions.
 

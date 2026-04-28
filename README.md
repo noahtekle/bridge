@@ -68,7 +68,7 @@ pnpm dev
 
 Bridge is open source. Every write is backed up first. There are no outbound network calls except when you explicitly trigger a GitHub import. You can read the source before you run it.
 
-Signing adds a layer of OS-level trust on top of that. It's on the roadmap for a future release. For v0.1, the safety case stands on its own — public source, atomic backed-up writes, zero telemetry. Once you approve the app on first launch, your OS remembers and never warns again.
+Signing adds a layer of OS-level trust on top of that. It's on the roadmap for a future release. For v0.1, that's the whole safety story — public source, atomic backed-up writes, zero telemetry. Once you approve the app on first launch, your OS remembers and never warns again.
 
 ### macOS — first launch
 
