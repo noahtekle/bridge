@@ -77,15 +77,19 @@ Mac is coming in v0.1.1. The v0.1.0 unsigned `.dmg` was producing too many Gatek
 
 If you want to use Bridge on Mac today, you can build from source — `pnpm install && pnpm build:mac` produces an unsigned `.dmg` you can right-click → Open.
 
-### Windows — first launch
+### Windows — first launch bypass
 
-SmartScreen Defender will show _"Windows protected your PC."_
+Windows SmartScreen will warn on first launch since Bridge ships unsigned. Here's the bypass:
 
-**Bypass:**
+**Step 1:** When you see this dialog, click **"More info"**:
 
-1. Click **More info** in the SmartScreen dialog
-2. Click **Run anyway**
-3. Windows remembers the choice; future launches are normal
+![Windows SmartScreen warning](apps/desktop/docs/screenshots/smartscreen-warning.png)
+
+**Step 2:** A new "Run anyway" button appears. Click it:
+
+![Run anyway button](apps/desktop/docs/screenshots/smartscreen-runanyway.png)
+
+**Step 3:** Windows remembers your choice. Future launches are normal.
 
 ## Privacy
 
